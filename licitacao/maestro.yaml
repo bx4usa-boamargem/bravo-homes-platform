@@ -1,0 +1,64 @@
+# maestro.yaml — Orquestrador Licitaí
+# Trigger: Diário 06:00 AM
+
+agent:
+  id: maestro
+  name: Maestro Licitaí
+  llm: claude-3-haiku-20240307
+  description: Orquestra o fluxo de busca, cruzamento e disparo de alertas de licitações.
+
+skills:
+  - contexto-produto-lic
+  - falha-segura-lic
+
+flow:
+  - step: update_cache
+    action: call_agent
+    agent: buscador
+    description: Busca licitações do dia no PNCP e salva no cache.
+
+  - step: get_active_companies
+    action: query_supabase
+    query: "SELECT id, razao_social FROM empresas WHERE ativo = true"
+
+  - step: process_companies
+    action: iterate
+    items: "{{ steps.get_active_companies.output }}"
+    flow:
+      - step: get_filters
+        action: query_supabase
+        query: "SELECT * FROM filtros_busca WHERE empresa_id = '{{ item.id }}' AND ativo = true"
+
+      - step: match_licitations
+        action: call_agent
+        agent: cruzador
+        params:
+          empresa_id: "{{ item.id }}"
+          filtros: "{{ steps.get_filters.output }}"
+
+      - step: notify_matches
+        action: iterate
+        items: "{{ steps.match_licitations.output }}"
+        flow:
+          - step: check_dedup
+            action: query_supabase
+            query: "SELECT id FROM logs_disparo WHERE empresa_id = '{{ item.empresa_id }}' AND id_licitacao_gov = '{{ item.id_licitacao_gov }}' LIMIT 1"
+
+          - step: summarize_and_send
+            condition: "{{ steps.check_dedup.output | length == 0 }}"
+            flow:
+              - step: summarize
+                action: call_agent
+                agent: resumidor
+                params:
+                  licitacao_id: "{{ item.id_licitacao_gov }}"
+              
+              - step: send_whatsapp
+                action: call_evolution_api
+                params:
+                  empresa_id: "{{ item.empresa_id }}"
+                  text: "{{ steps.summarize.output }}"
+
+              - step: log_sent
+                action: query_supabase
+                query: "INSERT INTO logs_disparo (empresa_id, id_licitacao_gov, status_envio) VALUES ('{{ item.empresa_id }}', '{{ item.id_licitacao_gov }}', 'enviado')"

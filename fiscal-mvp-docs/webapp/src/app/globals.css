@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Status colors — semantic, never decorative */
+  --color-limpo-bg:       #dcfce7;  /* green-100 */
+  --color-limpo-text:     #166534;  /* green-800 */
+  --color-limpo-border:   #86efac;  /* green-300 */
+
+  --color-pendente-bg:    #fee2e2;  /* red-100 */
+  --color-pendente-text:  #991b1b;  /* red-800 */
+  --color-pendente-border:#fca5a5;  /* red-300 */
+
+  --color-falha-bg:       #f3f4f6;  /* gray-100 */
+  --color-falha-text:     #374151;  /* gray-700 */
+  --color-falha-border:   #d1d5db;  /* gray-300 */
+
+  --color-verificacao-bg: #fef9c3;  /* yellow-100 */
+  --color-verificacao-text:#854d0e; /* yellow-800 */
+  --color-verificacao-border:#fde047; /* yellow-300 */
+
+  /* Brand — Navy + action blue */
+  --color-primary:        #0f2952;  /* Navy — headers, logo */
+  --color-action:         #1d4ed8;  /* Blue-700 — buttons, links */
+  --color-surface:        #f8fafc;  /* Slate-50 — page background */
+  --color-card:           #ffffff;  /* White — card backgrounds */
+  --color-border:         #e2e8f0;  /* Slate-200 — borders */
+  --color-text-primary:   #0f172a;  /* Slate-900 */
+  --color-text-secondary: #64748b;  /* Slate-500 */
+}
+
+body {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  font-weight: 500;
+  color: var(--color-primary);
+}

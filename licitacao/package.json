@@ -1,0 +1,26 @@
+{
+  "name": "meu-projeto",
+  "version": "1.0.0",
+  "description": "AIOX Project in AntiGravity",
+  "scripts": {
+    "sync:ide": "node .aiox-core/infrastructure/scripts/ide-sync/index.js sync",
+    "sync:ide:antigravity": "node .aiox-core/infrastructure/scripts/ide-sync/index.js sync --ide antigravity",
+    "sync:ide:check": "node .aiox-core/infrastructure/scripts/ide-sync/index.js validate --strict",
+    "sync:skills:codex": "npx aiox-core sync --skills codex",
+    "sync:skills:codex:global": "npx aiox-core sync --skills codex --global",
+    "validate:structure": "npx aiox-core validate --structure",
+    "validate:agents": "npx aiox-core validate --agents",
+    "doctor": "npx aiox-core doctor",
+    "lint": "npx aiox-core lint",
+    "test": "npx aiox-core test",
+    "typecheck": "npx aiox-core typecheck"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@supabase/supabase-js": "^2.99.1",
+    "aiox-core": "latest",
+    "dotenv": "^17.3.1",
+    "openai": "^6.29.0",
+    "pg": "^8.20.0"
+  }
+}

@@ -1,0 +1,23 @@
+# buscador.yaml — Busca na API do Governo
+# Skill: compras-gov-api
+
+agent:
+  id: buscador
+  name: Buscador PNCP
+  llm: claude-3-haiku-20240307
+  description: Consome a API do PNCP, filtra editais do dia e salva na licitacoes_cache.
+
+skills:
+  - compras-gov-api
+  - falha-segura-lic
+
+config:
+  base_url: "https://pncp.gov.br/api/consulta/v1"
+  modalidades: [6, 8, 4] # 6: Pregão, 8: Dispensa, 4: Concorrência
+  tamanhoPagina: 500
+
+tasks:
+  - name: fetch_and_cache
+    description: Executa a busca para as modalidades configuradas e persiste no Supabase.
+    on_conflict: "DO NOTHING"
+    table: licitacoes_cache

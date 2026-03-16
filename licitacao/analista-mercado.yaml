@@ -1,0 +1,47 @@
+# analista-mercado.yaml — Inteligência Competitiva
+# Trigger: Diário 19:30 PM
+
+agent:
+  id: analista-mercado
+  name: Analista de Mercado
+  llm: claude-3-5-sonnet-20240620
+  description: Analisa histórico de licitações e gera briefing estratégico (Plano Pro/Premium).
+
+skills:
+  - analise-mercado
+  - compras-gov-api
+  - falha-segura-lic
+
+flow:
+  - step: get_tomorrow_licitations
+    action: query_supabase
+    query: "SELECT ld.*, lc.* FROM logs_disparo ld JOIN licitacoes_cache lc ON lc.id_licitacao_gov = ld.id_licitacao_gov JOIN empresas e ON e.id = ld.empresa_id WHERE DATE(lc.data_encerramento AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE + 1 AND ld.status_envio = 'enviado' AND e.plano IN ('pro', 'premium')"
+
+  - step: process_briefings
+    action: iterate
+    items: "{{ steps.get_tomorrow_licitations.output }}"
+    flow:
+      - step: fetch_history
+        action: call_skill
+        skill: compras-gov-api
+        method: get_historic_results
+      
+      - step: calculate_metrics
+        action: call_skill
+        skill: analise-mercado
+        method: calculate_stats
+      
+      - step: generate_briefing
+        action: generate_text
+        template: brifing_template
+
+      - step: save_and_send
+        action: parallel
+        steps:
+          - step: save_to_db
+            action: query_supabase
+            query: "INSERT INTO analise_mercado (empresa_id, id_licitacao_gov, resumo_texto, whatsapp_enviado) VALUES ('{{ item.empresa_id }}', '{{ item.id_licitacao_gov }}', '{{ steps.generate_briefing.output }}', true)"
+          - step: send_wa
+            action: call_evolution_api
+            params:
+              text: "{{ steps.generate_briefing.output }}"

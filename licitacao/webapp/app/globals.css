@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  /* Cores Refinadas - Estilo Meu Jurídico */
+  --color-navy: #0F172A;        /* Sidebar/Background Dark */
+  --color-navy-light: #1E293B;  /* Sidebar Hover/Accent */
+  --color-emerald: #10B981;     /* Primary Action */
+  --color-emerald-light: #F0FDF4; /* Background Positive */
+  --color-surface: #F8FAFC;     /* Main Content Background */
+  --color-card: #FFFFFF;
+  --color-border: #E2E8F0;
+  
+  /* Texto */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  /* Backgrounds */
+  --background: var(--color-surface);
+  --foreground: var(--color-text-primary);
+}
+
+@theme inline {
+  --color-navy: var(--color-navy);
+  --color-navy-light: var(--color-navy-light);
+  --color-emerald: var(--color-emerald);
+  --color-emerald-light: var(--color-emerald-light);
+  --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
+  --color-border: var(--color-border);
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilitários Customizados */
+.bg-navy { background-color: var(--color-navy); }
+.text-navy { color: var(--color-navy); }
+.bg-emerald { background-color: var(--color-emerald); }
+.text-emerald { color: var(--color-emerald); }
+
+/* Estilo de Chips e Badges */
+.badge-enviado { @apply bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium; }
+.badge-falha { @apply bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-medium; }
+.badge-urgente { @apply text-red-600 font-medium; }

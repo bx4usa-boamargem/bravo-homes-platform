@@ -1,0 +1,46 @@
+name: ecac-browser
+llm: claude-3-5-sonnet
+role: Browser Agent
+description: Navega no portal e-CAC para extrair pendências fiscais e baixar CNDs.
+
+skills:
+  - navegacao-gov-br
+  - falha-segura
+  - seguranca-credenciais
+  - json-supabase
+
+input_variables:
+  - cnpj_ecac
+  - cnpj_consulta
+  - credencial_tipo
+  - drive_pasta_id
+
+flow:
+  - step: login
+    action: navigate_and_auth
+    url: "https://cav.receita.fazenda.gov.br"
+    mode: "{{credencial_tipo}}" # certificado_a1 | login_senha
+
+  - step: select_cnpj_profile
+    action: click_element
+    selector: "text=Alterar perfil de acesso"
+    input: "{{cnpj_ecac}}"
+
+  - step: fetch_cnd
+    action: navigate_to_path
+    path: ["Serviços", "Certidões", "Emitir CND/CPEND"]
+    wait_time: 60
+
+  - step: capture_data
+    action: extract_fiscal_data
+    take_screenshot: true
+    capture_pdf: true
+
+  - step: upload_to_drive
+    condition: "status == 'limpo'"
+    action: google_drive_upload
+    path: "/fiscal-mvp/{{contador_id}}/{{cnpj_consulta}}/"
+
+output:
+  format: json
+  schema: json-supabase

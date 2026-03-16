@@ -1,0 +1,17 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4 theme definition."
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS directive to apply utility classes."
+    },
+    {
+      "name": "@import",
+      "description": "Tailwind CSS v4 import directive."
+    }
+  ]
+}

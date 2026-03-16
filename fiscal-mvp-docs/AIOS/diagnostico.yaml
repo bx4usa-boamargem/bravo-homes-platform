@@ -1,0 +1,28 @@
+name: diagnostico
+llm: claude-3-5-sonnet
+role: Diagnostic & Delivery Agent
+description: Interpreta resultados JSON e envia mensagens formatadas via WhatsApp.
+
+skills:
+  - linguagem-contabil
+  - json-supabase
+
+input:
+  results: JSON_ARRAY # Grupo de resultados por contador
+
+flow:
+  - step: analyze_results
+    action: transform_to_human_text
+    logic:
+      limpo: "Confirmação curta."
+      pendente: "Tipo + Valor Estimado + Próximo Passo."
+      falha: "Erro amigável + Próxima tentativa."
+
+  - step: dispatch_whatsapp
+    action: evolution_api_send
+    target: "{{contador.whatsapp}}"
+    message: "{{human_text_diagnostic}}"
+
+output:
+  status: delivered
+  timestamp: "{{now}}"

@@ -1,0 +1,30 @@
+# notificador-resultado.yaml — Follow-up de Resultado
+# Trigger: Diário 08:00 AM
+
+agent:
+  id: notificador-resultado
+  name: Notificador de Resultados
+  llm: claude-3-haiku-20240307
+  description: Envia mensagens de follow-up perguntando o resultado das licitações do dia.
+
+skills:
+  - linguagem-licitacao
+  - follow-up-resultado
+
+flow:
+  - step: get_today_openings
+    action: query_supabase
+    query: "SELECT ld.*, lc.titulo FROM logs_disparo ld JOIN licitacoes_cache lc ON lc.id_licitacao_gov = ld.id_licitacao_gov WHERE DATE(lc.data_encerramento AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE AND ld.status_envio = 'enviado' AND ld.follow_up_enviado = false"
+
+  - step: process_followups
+    action: iterate
+    items: "{{ steps.get_today_openings.output }}"
+    flow:
+      - step: send_message
+        action: call_evolution_api
+        params:
+          text: "MENSAGEM_FOLLOWUP_TEMPLATE"
+      
+      - step: update_log
+        action: query_supabase
+        query: "UPDATE logs_disparo SET follow_up_enviado = true, status_participacao = 'aguardando' WHERE id = '{{ item.id }}'"

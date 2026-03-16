@@ -1,0 +1,18 @@
+# cruzador.yaml — Motor de Match
+# Skill: deduplicacao
+
+agent:
+  id: cruzador
+  name: Cruzador de Filtros
+  llm: claude-3-haiku-20240307
+  description: Compara os filtros da empresa com o cache de licitações.
+
+skills:
+  - deduplicacao
+
+logic:
+  - rules:
+      - condition: "matches_keywords(licitacao.objeto, filtros.palavras_chave)"
+      - condition: "matches_state(licitacao.uf, filtros.estados)"
+      - condition: "licitacao.valor_estimado >= filtros.valor_minimo OR licitacao.valor_estimado IS NULL"
+  - operator: AND

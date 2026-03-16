@@ -1,0 +1,42 @@
+name: maestro
+llm: claude-3-haiku
+role: Orchestrator
+description: Gerencia o fluxo diário de consultas fiscais e orquestra os sub-agentes.
+
+skills:
+  - contexto-produto
+
+schedule:
+  cron: "30 7 * * *" # 07:30 AM Brasília (UTC-3)
+  timezone: "America/Sao_Paulo"
+
+flow:
+  - step: get_active_companies
+    action: supabase_query
+    query: "SELECT * FROM empresas WHERE ativo = true"
+    group_by: contador_id
+
+  - step: invoke_browser_agent
+    foreach: company
+    agent: ecac-browser.yaml
+    input:
+      empresa_id: "{{company.id}}"
+      cnpj_ecac: "{{company.cnpj}}"
+      credencial_enc: "{{company.credencial_enc}}"
+    timeout: 300 # 5 minutes
+
+  - step: health_check
+    condition: "failure_rate > 0.3"
+    action: notify_operator
+    provider: telegram # or slack
+    message: "Alerta: Mais de 30% das consultas falharam. Verifique o portal e-CAC."
+
+  - step: generate_diagnostics
+    foreach: contador_group
+    agent: diagnostico.yaml
+    input:
+      results: "{{contador_results}}"
+
+logs:
+  level: info
+  redact_credentials: true

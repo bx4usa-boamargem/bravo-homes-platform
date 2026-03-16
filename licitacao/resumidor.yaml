@@ -1,0 +1,15 @@
+# resumidor.yaml — Gerador de Resumo Humanizado
+# Skill: linguagem-licitacao
+
+agent:
+  id: resumidor
+  name: Resumidor Licitaí
+  llm: claude-3-5-sonnet-20240620
+  description: Transforma dados brutos da licitação em uma mensagem formatada para WhatsApp.
+
+skills:
+  - linguagem-licitacao
+
+config:
+  template: default_alerta
+  tone: professional_helpful
