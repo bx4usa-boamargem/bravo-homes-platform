@@ -28,6 +28,7 @@ export default function PartnerDashboard() {
   const [chatTab, setChatTab] = useState<string>('admin');
   const [clients, setClients] = useState<any[]>([]);
   const [selectedChatClient, setSelectedChatClient] = useState<any>(null);
+  const [deleteConfirmClient, setDeleteConfirmClient] = useState<any>(null);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, msg: string, type: 'error' | 'success'} | null>(null);
@@ -1105,13 +1106,14 @@ export default function PartnerDashboard() {
                       const isSelected = chatTab === 'client' && selectedChatClient?.id === c.id;
                       const unread = messages.filter((m: any) => m.sender_id === c.id && m.receiver_id === user?.id).length;
                       return (
-                        <div key={c.id} onClick={() => { setChatTab('client'); setSelectedChatClient(c); }} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer',background:isSelected ? 'var(--gd)' : 'transparent',borderLeft:`3px solid ${isSelected ? 'var(--gold)' : 'transparent'}`}}>
+                        <div key={c.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer',background:isSelected ? 'var(--gd)' : 'transparent',borderLeft:`3px solid ${isSelected ? 'var(--gold)' : 'transparent'}`,position:'relative'}} onClick={() => { setChatTab('client'); setSelectedChatClient(c); }}>
                           <div style={{width:32,height:32,borderRadius:'50%',background:'rgba(46,204,113,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.65rem',fontWeight:700,color:'var(--green)',flexShrink:0}}>{(c.name || 'CL').substring(0,2).toUpperCase()}</div>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.name || 'Cliente'}</div>
                             <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',color:'var(--t3)'}}>{c.email || c.phone || ''}</div>
                           </div>
                           {unread > 0 && <span className="badge gold" style={{fontSize:'0.55rem'}}>{unread}</span>}
+                          <button title="Apagar conversa" onClick={(e) => { e.stopPropagation(); setDeleteConfirmClient(c); }} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:'0.85rem',padding:'4px',color:'var(--t3)',opacity:0.6,transition:'opacity .15s'}} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}>🗑️</button>
                         </div>
                       );
                     })}
@@ -1169,6 +1171,40 @@ export default function PartnerDashboard() {
                     <input className="chat-input" style={{flex:1}} placeholder={isRecording ? '🔴 Recording... click mic to stop' : 'Type your message...'} value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatMsg); }}} disabled={isRecording} />
                     <button className="btn gold" onClick={() => sendMessage(chatMsg)} disabled={isRecording || !chatMsg.trim()}>Send</button>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete conversation confirmation popup */}
+          {deleteConfirmClient && (
+            <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999}} onClick={() => setDeleteConfirmClient(null)}>
+              <div style={{background:'var(--bg2)',border:'1px solid var(--b)',borderRadius:12,padding:'28px 32px',maxWidth:400,width:'90%',boxShadow:'0 20px 60px rgba(0,0,0,0.5)'}} onClick={e => e.stopPropagation()}>
+                <div style={{fontSize:'1.2rem',marginBottom:6}}>🗑️</div>
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'1rem',marginBottom:8}}>Apagar conversa?</div>
+                <div style={{color:'var(--t2)',fontSize:'0.85rem',marginBottom:20,lineHeight:1.5}}>
+                  Tem certeza que deseja apagar toda a conversa com <b style={{color:'var(--gold)'}}>{deleteConfirmClient.name || 'este cliente'}</b>? Esta ação não pode ser desfeita.
+                </div>
+                <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+                  <button className="btn ghost" onClick={() => setDeleteConfirmClient(null)}>Cancelar</button>
+                  <button className="btn" style={{background:'var(--red)',color:'#fff',border:'none'}} onClick={async () => {
+                    // Delete all messages between partner and this client
+                    await supabase.from('messages').delete().or(
+                      `and(sender_id.eq.${user?.id},receiver_id.eq.${deleteConfirmClient.id}),and(sender_id.eq.${deleteConfirmClient.id},receiver_id.eq.${user?.id})`
+                    );
+                    // Remove from local state
+                    setMessages(prev => prev.filter(m =>
+                      !((m.sender_id === user?.id && m.receiver_id === deleteConfirmClient.id) ||
+                        (m.sender_id === deleteConfirmClient.id && m.receiver_id === user?.id))
+                    ));
+                    // If this was the selected chat, deselect
+                    if (selectedChatClient?.id === deleteConfirmClient.id) {
+                      setSelectedChatClient(null);
+                      setChatTab('admin');
+                    }
+                    setDeleteConfirmClient(null);
+                    showToast('Sucesso', 'Conversa apagada.', 'success');
+                  }}>Apagar</button>
                 </div>
               </div>
             </div>
