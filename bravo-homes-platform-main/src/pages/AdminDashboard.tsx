@@ -2035,6 +2035,30 @@ export default function AdminDashboard() {
                 <div className="card">
                   <div className="ch"><span className="ct">🔔 {t('notifications')}</span></div>
                   <div className="cb">
+                    {/* Permission status + buttons */}
+                    <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px',padding:'10px',borderRadius:'8px',background: typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.1)'}}>
+                      <span style={{fontSize:'0.8rem',fontWeight:600}}>
+                        {typeof Notification !== 'undefined' && Notification.permission === 'granted'
+                          ? '✅ Notificações ativadas'
+                          : Notification.permission === 'denied'
+                          ? '🚫 Notificações bloqueadas (ative nas configurações do browser)'
+                          : '⚠️ Notificações não ativadas'}
+                      </span>
+                      {typeof Notification !== 'undefined' && Notification.permission !== 'granted' && Notification.permission !== 'denied' && (
+                        <button className="btn gold" style={{fontSize:'0.7rem',padding:'4px 12px'}} onClick={async () => {
+                          const perm = await Notification.requestPermission();
+                          if (perm === 'granted') { showToast('✅ Notificações ativadas!'); sendBrowserNotif('🔔 Bravo Homes', 'Notificações funcionando!', 'test'); }
+                          else showToast('❌ Permissão negada.');
+                        }}>Ativar Notificações</button>
+                      )}
+                      {typeof Notification !== 'undefined' && Notification.permission === 'granted' && (
+                        <button className="btn" style={{fontSize:'0.7rem',padding:'4px 12px',background:'var(--b2)'}} onClick={() => {
+                          sendBrowserNotif('🔔 Teste Bravo', 'As notificações estão funcionando perfeitamente!', 'test-' + Date.now());
+                          showToast('Notificação de teste enviada!');
+                        }}>🧪 Testar</button>
+                      )}
+                    </div>
+
                     {[
                       {label: t('newLeadReceived'), desc: t('newLeadReceivedDesc'), key: 'new_lead'},
                       {label: t('partnerMessage'), desc: t('partnerMessageDesc'), key: 'partner_msg'},
