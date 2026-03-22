@@ -632,10 +632,7 @@ export default function PartnerDashboard() {
             {activeTab === 'profile' && t('myProfile')}
           </div>
           
-          <div style={{display: 'flex', gap: '8px', marginLeft: 'auto', marginRight: '16px'}}>
-            <button style={{background: 'transparent', border: '1px solid var(--b)', color: 'var(--text)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'}} onClick={() => window.open('/admin', '_blank')}>{t('adminView')}</button>
-            <button style={{background: 'transparent', border: '1px solid var(--b)', color: 'var(--text)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'}} onClick={() => window.open('/client', '_blank')}>{t('clientView')}</button>
-          </div>
+
 
           <div className="topbar-pill">🟢 Online</div>
           <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--t3)'}}>Qua, 24 Março 2026</span>

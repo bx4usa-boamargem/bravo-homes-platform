@@ -129,10 +129,7 @@ export default function ClientDashboard() {
           <button className="sb-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
           <span className="topbar-title">{{'dashboard':'DASHBOARD','progress':'PROGRESSO','stages':'ETAPAS','fotos':'FOTOS','pagamentos':'PAGAMENTOS','chat':'CHAT','aprovacoes':'APROVAÇÕES','documentos':'DOCUMENTOS','avaliacao':'AVALIAÇÃO'}[activeTab] || activeTab.toUpperCase()}</span>
           
-          <div style={{display: 'flex', gap: '8px', marginLeft: 'auto', marginRight: '16px'}}>
-            <button style={{background: 'transparent', border: '1px solid var(--border)', color: 'var(--text)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'}} onClick={() => window.open('/admin', '_blank')}>💼 Visão Admin</button>
-            <button style={{background: 'transparent', border: '1px solid var(--border)', color: 'var(--text)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'}} onClick={() => window.open('/partner', '_blank')}>👷 Visão Parceiro</button>
-          </div>
+
 
           <span className="topbar-badge">Em Andamento</span>
           <span className="topbar-date">Qua, 24 Março</span>
