@@ -668,12 +668,11 @@ export default function AdminDashboard() {
       await new Promise(r => setTimeout(r, 1500));
       const { error: updateErr } = await supabase.from('profiles')
         .update({
-          name: partnerForm.name,
           full_name: partnerForm.name,
           city: partnerForm.city || null,
           phone: partnerForm.phone || null,
           specialty: partnerForm.specialty || null,
-          status: 'available'
+          state: 'available'
         })
         .eq('id', authData.user.id);
       if (updateErr) console.warn('Campos extras não salvos:', updateErr.message);
@@ -1375,7 +1374,7 @@ export default function AdminDashboard() {
                           <td>{(projects.filter(proj => proj.partner_id === p.id).length) || 0}</td>
                           <td>{
                             (() => {
-                              const st = p.status || 'available';
+                              const st = p.state || 'available';
                               const map: Record<string,{label:string,cls:string}> = { available: {label:'Disponível',cls:'sb-active'}, busy: {label:'Em Projeto',cls:'sb-draft'}, inactive: {label:'Inativo',cls:'sb-red'} };
                               const s = map[st] || map.available;
                               return <span className={`status-b ${s.cls}`}>{s.label}</span>;
@@ -2100,7 +2099,7 @@ export default function AdminDashboard() {
                   <div className="f-row" style={{gap:'10px'}}>
                     <div style={{flex:1}}>
                       <label className="f-label">Nome *</label>
-                      <input className="f-inp" value={editPartner.name || editPartner.full_name || ''} onChange={e => setEditPartner({...editPartner, name: e.target.value, full_name: e.target.value})} />
+                      <input className="f-inp" value={editPartner.full_name || ''} onChange={e => setEditPartner({...editPartner, full_name: e.target.value})} />
                     </div>
                   </div>
                   <div className="f-row" style={{gap:'10px'}}>
@@ -2120,7 +2119,7 @@ export default function AdminDashboard() {
                     </div>
                     <div style={{flex:1}}>
                       <label className="f-label">Status</label>
-                      <select className="f-inp" value={editPartner.status || 'available'} onChange={e => setEditPartner({...editPartner, status: e.target.value})}>
+                      <select className="f-inp" value={editPartner.state || 'available'} onChange={e => setEditPartner({...editPartner, state: e.target.value})}>
                         <option value="available">Disponível</option>
                         <option value="busy">Em Projeto</option>
                         <option value="inactive">Inativo</option>
@@ -2138,7 +2137,7 @@ export default function AdminDashboard() {
                     <div className="dfield"><div className="dlabel">Especialidade</div><div className="dval">{selectedPartner.specialty || 'Empreiteiro Geral'}</div></div>
                     <div className="dfield"><div className="dlabel">Status</div><div className="dval">{{
                       available: 'Disponível', busy: 'Em Projeto', inactive: 'Inativo'
-                    }[selectedPartner.status as string] || 'Disponível'}</div></div>
+                    }[selectedPartner.state as string] || 'Disponível'}</div></div>
                   </div>
                 </>
               )}
@@ -2170,12 +2169,11 @@ export default function AdminDashboard() {
                   <button className="btn ghost" onClick={() => setEditPartner(null)}>Cancelar</button>
                   <button className="btn gold" onClick={async () => {
                     const { error } = await supabase.from('profiles').update({
-                      name: editPartner.name || editPartner.full_name,
-                      full_name: editPartner.name || editPartner.full_name,
+                      full_name: editPartner.full_name || editPartner.name,
                       phone: editPartner.phone || null,
                       city: editPartner.city || null,
                       specialty: editPartner.specialty || null,
-                      status: editPartner.status || 'available'
+                      state: editPartner.state || 'available'
                     }).eq('id', selectedPartner.id);
                     if (error) { showToast('Erro: ' + error.message); return; }
                     const updated = {...selectedPartner, ...editPartner};
