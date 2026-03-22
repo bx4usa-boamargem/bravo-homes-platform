@@ -1614,9 +1614,9 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* SEGURANÇA */}
-                <div className="card">
+                <div className="card" style={{display:'flex',flexDirection:'column'}}>
                   <div className="ch"><span className="ct">🔒 {t('security')}</span></div>
-                  <div className="cb">
+                  <div className="cb" style={{display:'flex',flexDirection:'column',flex:1}}>
                     <div style={{marginBottom:'10px'}}>
                       <label className="f-label">{t('currentPassword')}</label>
                       <input type="password" className="f-inp" placeholder="••••••••" />
@@ -1640,7 +1640,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'24px'}}><button className="btn gold" onClick={() => showToast(t('passwordUpdated'))}>{t('changePassword')}</button></div>
+                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'auto',paddingTop:'24px'}}><button className="btn gold" onClick={() => showToast(t('passwordUpdated'))}>{t('changePassword')}</button></div>
                   </div>
                 </div>
 
