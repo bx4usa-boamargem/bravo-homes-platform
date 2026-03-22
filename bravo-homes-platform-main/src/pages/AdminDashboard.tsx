@@ -488,43 +488,29 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!newLeadForm.name || !newLeadForm.city) return;
     
-    // First, let's create a placeholder client for this manual lead (optional but recommended since leads references clients)
-    const { data: clientData, error: clientErr } = await supabase.from('clients').insert({
+    // Only create the lead — client is created when assigned to a partner
+    const leadPayload: Record<string, unknown> = {
       name: newLeadForm.name,
-      email: newLeadForm.email || `${newLeadForm.name.replace(/\s/g, '').toLowerCase()}@example.com`,
-      phone: newLeadForm.phone || 'N/A',
+      email: newLeadForm.email || '',
+      phone: newLeadForm.phone || '',
+      service_type: newLeadForm.service_type,
       city: newLeadForm.city,
-      state: 'GA'
-    }).select().single();
+      source: 'manual-admin',
+      status: 'new',
+      urgency: newLeadForm.urgency,
+    };
+    if (newLeadForm.estimated_value) leadPayload.estimated_value = parseFloat(newLeadForm.estimated_value);
+    if (newLeadForm.partner_id) leadPayload.partner_id = newLeadForm.partner_id;
+    const { data: newLead, error } = await supabase.from('leads').insert(leadPayload).select().single();
 
-    if (!clientErr && clientData) {
-      const leadPayload: Record<string, unknown> = {
-        client_id: clientData.id,
-        service_type: newLeadForm.service_type,
-        city: newLeadForm.city,
-        source: 'manual-admin',
-        status: 'new',
-        urgency: newLeadForm.urgency,
-      };
-      if (newLeadForm.estimated_value) leadPayload.estimated_value = parseFloat(newLeadForm.estimated_value);
-      if (newLeadForm.partner_id) leadPayload.partner_id = newLeadForm.partner_id;
-      const { data: newLead, error } = await supabase.from('leads').insert(leadPayload).select().single();
-
-      if (!error && newLead) {
-        // Manually update the UI state so it happens instantly even if Realtime is off
-        const completeLead = { ...newLead, clients: clientData };
-        setLeads(prev => prev.some(l => l.id === newLead.id) ? prev : [completeLead, ...prev]);
-        setClients(prev => prev.some(c => c.id === clientData.id) ? prev : [clientData, ...prev]);
-        
-        setIsNewLeadOpen(false);
-        setNewLeadForm({ name: '', service_type: 'Bathroom Remodel', city: '', email: '', phone: '', urgency: 'warm', estimated_value: '', partner_id: '' });
-      } else {
-        console.error('Error inserting lead:', error);
-        showToast(`Erro ao criar Lead: ${error?.message || 'Erro desconhecido'}`);
-      }
+    if (!error && newLead) {
+      setLeads(prev => prev.some(l => l.id === newLead.id) ? prev : [newLead, ...prev]);
+      setIsNewLeadOpen(false);
+      setNewLeadForm({ name: '', service_type: 'Bathroom Remodel', city: '', email: '', phone: '', urgency: 'warm', estimated_value: '', partner_id: '' });
+      showToast('Lead criado com sucesso!');
     } else {
-      console.error('Error inserting client:', clientErr);
-      showToast(`Erro ao criar Cliente: ${clientErr?.message || 'Erro desconhecido'}`);
+      console.error('Error inserting lead:', error);
+      showToast(`Erro ao criar Lead: ${error?.message || 'Erro desconhecido'}`);
     }
   };
 
@@ -1580,8 +1566,9 @@ export default function AdminDashboard() {
                       <th style={{width: '15%', textAlign: 'center'}}>Ações</th>
                     </tr></thead>
                     <tbody>
-                      {clients.length === 0 && !loadingDb && <tr><td colSpan={6} className="u-empty-state">Nenhum cliente cadastrado.</td></tr>}
-                      {clients.map(c => (
+                      {/* Only show clients that are linked to leads with assigned partners */}
+                      {clients.filter(c => leads.some(l => l.client_id === c.id && l.assigned_partners && l.assigned_partners.length > 0)).length === 0 && !loadingDb && <tr><td colSpan={6} className="u-empty-state">Nenhum cliente com parceiro atribuído.</td></tr>}
+                      {clients.filter(c => leads.some(l => l.client_id === c.id && l.assigned_partners && l.assigned_partners.length > 0)).map(c => (
                         <tr key={c.id}>
                           <td><b>{c.name}</b></td>
                           <td>{c.email}</td>
@@ -1988,6 +1975,23 @@ export default function AdminDashboard() {
                             const newList = isAssigned ? assignedList.filter((id: string) => id !== p.id) : [...assignedList, p.id];
                             setSelectedLead({...selectedLead, assigned_partners: newList});
                             await updateLead(selectedLead.id, { assigned_partners: newList });
+
+                            // When assigning a partner: create Client if not yet created
+                            if (!isAssigned && !selectedLead.client_id) {
+                              const { data: newClient } = await supabase.from('clients').insert({
+                                name: selectedLead.clients?.name || selectedLead.name || 'Unknown',
+                                email: (selectedLead as any).email || '',
+                                phone: (selectedLead as any).phone || '',
+                                city: selectedLead.city || '',
+                                state: 'GA'
+                              }).select().single();
+                              if (newClient) {
+                                await updateLead(selectedLead.id, { client_id: newClient.id });
+                                setSelectedLead({...selectedLead, assigned_partners: newList, client_id: newClient.id, clients: newClient});
+                                setClients(prev => [...prev, newClient]);
+                                showToast('Lead promovido a Cliente!');
+                              }
+                            }
                           }}
                         >
                           <div style={{width:14,height:14,borderRadius:3,border: isAssigned ? '2px solid var(--gold)' : '2px solid var(--b2)',background: isAssigned ? 'var(--gold)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',color:'#000',flexShrink:0}}>

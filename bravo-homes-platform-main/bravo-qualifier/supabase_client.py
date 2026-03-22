@@ -67,7 +67,7 @@ async def create_client(qualification: dict) -> Optional[str]:
         return None
 
 
-async def create_lead(client_id: str, qualification: dict) -> Optional[str]:
+async def create_lead(client_id: Optional[str], qualification: dict) -> Optional[str]:
     """
     Cria um Lead na tabela 'leads' do Supabase.
     Retorna o ID do lead criado ou None se falhar.
@@ -103,7 +103,6 @@ async def create_lead(client_id: str, qualification: dict) -> Optional[str]:
     lead_status = status_map.get(classificacao, "new")
 
     payload = {
-        "client_id": client_id,
         "name": qualification.get("client_name", "Unknown"),
         "service_type": service_type,
         "estimated_value": qualification.get("estimated_budget", 0),
@@ -113,6 +112,8 @@ async def create_lead(client_id: str, qualification: dict) -> Optional[str]:
         "status": lead_status,
         "notes": notas,
     }
+    if client_id:
+        payload["client_id"] = client_id
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -138,8 +139,9 @@ async def create_lead(client_id: str, qualification: dict) -> Optional[str]:
 
 async def insert_qualified_lead(qualification: dict) -> Tuple[Optional[str], Optional[str]]:
     """
-    Fluxo completo: cria cliente + lead no Supabase.
-    Retorna (client_id, lead_id) ou (None, None) se falhar.
+    Insere lead qualificado no Supabase.
+    NÃO cria cliente — o cliente é criado quando um Admin atribui o lead a um Parceiro.
+    Retorna (None, lead_id) ou (None, None) se falhar.
     """
     classificacao = qualification.get("classificacao", "cold")
 
@@ -151,17 +153,11 @@ async def insert_qualified_lead(qualification: dict) -> Tuple[Optional[str], Opt
     emoji = "🔥" if classificacao == "hot" else "🟡"
     print(f"\n  {emoji} Lead {classificacao.upper()} — Inserindo na plataforma Bravo...")
 
-    # Passo 1: Criar cliente
-    client_id = await create_client(qualification)
-    if not client_id:
-        print("  ❌ Falha ao criar cliente. Lead não inserido.")
+    # Criar lead diretamente (sem criar cliente)
+    lead_id = await create_lead(None, qualification)
+    if not lead_id:
+        print("  ❌ Falha ao criar lead.")
         return None, None
 
-    # Passo 2: Criar lead vinculado ao cliente
-    lead_id = await create_lead(client_id, qualification)
-    if not lead_id:
-        print("  ❌ Falha ao criar lead. Cliente foi criado mas lead não foi vinculado.")
-        return client_id, None
-
-    print(f"  🎯 Lead inserido com sucesso! client={client_id}, lead={lead_id}")
-    return client_id, lead_id
+    print(f"  🎯 Lead inserido com sucesso! lead={lead_id}")
+    return None, lead_id
