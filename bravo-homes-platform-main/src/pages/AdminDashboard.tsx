@@ -1357,9 +1357,9 @@ export default function AdminDashboard() {
                         <tr key={p.id}>
                           <td>
                             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                              <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px'}}>{p.name.substring(0,2).toUpperCase()}</div>
+                              <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px'}}>{(p.name || 'N/A').substring(0,2).toUpperCase()}</div>
                               <div>
-                                <b>{p.name}</b>
+                                <b>{p.name || 'Sem nome'}</b>
                                 <div style={{fontSize:'.7rem', color:'var(--t2)'}}>{p.city || 'Georgia'} • {p.phone || 'Sem contato'}</div>
                               </div>
                             </div>
