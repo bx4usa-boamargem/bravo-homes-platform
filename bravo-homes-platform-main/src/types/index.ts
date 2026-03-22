@@ -232,6 +232,35 @@ export interface ChatPartner {
 }
 
 // ============================================
+// Social Media Types
+// ============================================
+
+export interface SocialAccount {
+  id: string;
+  platform: string;
+  page_id?: string;
+  page_name?: string;
+  access_token: string;
+  ig_business_id?: string;
+  token_expires_at?: string;
+  created_at?: string;
+}
+
+export interface SocialPost {
+  id: string;
+  platform: string;
+  content?: string;
+  image_url?: string;
+  post_id?: string;
+  post_url?: string;
+  status: string;
+  scheduled_at?: string;
+  published_at?: string;
+  metrics?: Record<string, unknown>;
+  created_at?: string;
+}
+
+// ============================================
 // Re-export Supabase User for convenience
 // ============================================
 
