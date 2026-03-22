@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
@@ -9,6 +10,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import './PartnerDashboard.css';
 
 export default function PartnerDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('partnerActiveTab') || 'dashboard');
   
   useEffect(() => {
@@ -69,6 +71,13 @@ export default function PartnerDashboard() {
       
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) setUser(currentUser);
+      // ROLE GUARD: only parceiro can access this dashboard
+      const { data: roleProfile } = await supabase.from('profiles').select('role').eq('id', currentUser.id).single();
+      if (roleProfile && roleProfile.role && roleProfile.role !== 'parceiro') {
+        if (roleProfile.role === 'admin') { navigate('/admin', { replace: true }); return; }
+        if (roleProfile.role === 'cliente') { navigate('/client', { replace: true }); return; }
+        navigate('/', { replace: true }); return;
+      }
       const { data: pData } = await supabase.from('projects').select('*');
       if (pData) setProjects(pData);
       

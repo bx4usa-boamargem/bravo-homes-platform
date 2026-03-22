@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
@@ -28,6 +29,7 @@ ChartJS.register(
 );
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('adminActiveTab') || 'dashboard');
   
   useEffect(() => {
@@ -261,6 +263,12 @@ export default function AdminDashboard() {
          const { data: profile, error: profError } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
          
          if (profile) {
+             // ROLE GUARD: only admins can access this dashboard
+             if (profile.role && profile.role !== 'admin') {
+               if (profile.role === 'parceiro') { navigate('/partner', { replace: true }); return; }
+               if (profile.role === 'cliente') { navigate('/client', { replace: true }); return; }
+               navigate('/', { replace: true }); return;
+             }
             setUserProfile({
                ...profile,
                avatar_url: currentUser.user_metadata?.avatar_url || profile.avatar_url,
