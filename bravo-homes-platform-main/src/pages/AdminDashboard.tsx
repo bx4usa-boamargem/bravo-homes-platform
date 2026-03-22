@@ -1609,7 +1609,7 @@ export default function AdminDashboard() {
                     <div style={{marginBottom:'10px'}}><label className="f-label">{t('fullName')}</label><input type="text" className="f-inp" value={adminName} onChange={(e) => setAdminName(e.target.value)} /></div>
                     <div style={{marginBottom:'10px'}}><label className="f-label">{t('email')}</label><input type="text" className="f-inp" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} /></div>
                     <div style={{marginBottom:'10px'}}><label className="f-label">Telefone</label><input type="tel" className="f-inp" placeholder="(00) 00000-0000" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} /></div>
-                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'8px'}}><button className="btn gold" onClick={handleProfileSave}>{t('saveChanges')}</button></div>
+                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'24px'}}><button className="btn gold" onClick={handleProfileSave}>{t('saveChanges')}</button></div>
                   </div>
                 </div>
 
@@ -1640,7 +1640,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'16px'}}><button className="btn gold" onClick={() => showToast(t('passwordUpdated'))}>{t('changePassword')}</button></div>
+                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'24px'}}><button className="btn gold" onClick={() => showToast(t('passwordUpdated'))}>{t('changePassword')}</button></div>
                   </div>
                 </div>
 
