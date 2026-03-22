@@ -1368,6 +1368,12 @@ export default function AdminDashboard() {
                     droppable={true}
                     eventDrop={handleEventDrop}
                     eventClick={handleEventClick}
+                    dateClick={(info: any) => {
+                      const clickedDate = info.dateStr?.substring(0, 10) || '';
+                      const clickedTime = info.dateStr?.substring(11, 16) || new Date().toTimeString().substring(0, 5);
+                      setEventForm({ lead_id: '', date: clickedDate, time: clickedTime, title: '' });
+                      setIsEventModalOpen(true);
+                    }}
                     height="100%"
                     slotMinTime="07:00:00"
                     slotMaxTime="20:00:00"

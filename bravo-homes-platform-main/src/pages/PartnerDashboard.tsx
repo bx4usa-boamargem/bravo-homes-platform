@@ -934,6 +934,12 @@ export default function PartnerDashboard() {
                       info.event.remove();
                     }
                   }}
+                  dateClick={(info: any) => {
+                    const clickedDate = info.dateStr?.substring(0, 10) || '';
+                    const clickedTime = info.dateStr?.substring(11, 16) || new Date().toTimeString().substring(0, 5);
+                    setNewEvent({ title: '', event_date: clickedDate, start_time: clickedTime, project_id: '' });
+                    setIsNewEventOpen(true);
+                  }}
                   height="auto"
                   slotMinTime="07:00:00"
                   slotMaxTime="20:00:00"
