@@ -329,7 +329,10 @@ export default function AdminDashboard() {
         const msg = payload.new;
         if ((msg.sender_id === user.id && msg.receiver_id === selectedChatUser.id) ||
             (msg.sender_id === selectedChatUser.id && msg.receiver_id === user.id)) {
-          setMessages(prev => [...prev, msg]);
+          setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev;
+            return [...prev.filter(m => !m.id?.toString().includes('.')), msg];
+          });
         }
       })
       .subscribe();
