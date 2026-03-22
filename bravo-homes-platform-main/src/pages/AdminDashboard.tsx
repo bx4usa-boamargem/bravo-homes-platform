@@ -96,6 +96,24 @@ export default function AdminDashboard() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPhone, setAdminPhone] = useState('');
 
+  // Browser Notifications
+  const [notifPrefs, setNotifPrefs] = useState(() => {
+    const saved = localStorage.getItem('bravo_notif_prefs');
+    return saved ? JSON.parse(saved) : { new_lead: true, partner_msg: true, project_update: true, weekly_report: true };
+  });
+  const toggleNotifPref = (key: string) => {
+    setNotifPrefs((prev: any) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('bravo_notif_prefs', JSON.stringify(updated));
+      return updated;
+    });
+  };
+  const sendBrowserNotif = (title: string, body: string, tag: string) => {
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/bravo-logo.png', tag, badge: '/bravo-logo.png' });
+    }
+  };
+
   // Sidebar responsive
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, lang, setLang } = useLanguage();
@@ -510,10 +528,48 @@ export default function AdminDashboard() {
     }
     fetchData();
 
+    // Request browser notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     const channel = supabase.channel('realtime-admin-leads')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, (payload) => {
-        setLeads(prev => [payload.new, ...prev]);
-        setIsNotifOpen(true); // Open notification panel automatically
+        const newLead = payload.new as any;
+        setLeads(prev => [newLead, ...prev]);
+        setIsNotifOpen(true);
+        // Browser push notification
+        const prefs = JSON.parse(localStorage.getItem('bravo_notif_prefs') || '{"new_lead":true}');
+        if (prefs.new_lead) {
+          sendBrowserNotif(
+            '🔔 Novo Lead na Bravo!',
+            `${newLead.name || 'Lead'} — ${newLead.service_type || ''} — ${newLead.city || ''} — $${newLead.estimated_value || '?'}`,
+            'new-lead-' + newLead.id
+          );
+        }
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const msg = payload.new as any;
+        const prefs = JSON.parse(localStorage.getItem('bravo_notif_prefs') || '{"partner_msg":true}');
+        if (prefs.partner_msg && msg.receiver_id === currentUser?.id) {
+          sendBrowserNotif(
+            '💬 Nova mensagem no chat',
+            msg.content?.substring(0, 100) || 'Nova mensagem recebida',
+            'chat-msg-' + msg.id
+          );
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'projects' }, (payload) => {
+        const proj = payload.new as any;
+        setProjects(prev => prev.map(p => p.id === proj.id ? proj : p));
+        const prefs = JSON.parse(localStorage.getItem('bravo_notif_prefs') || '{"project_update":true}');
+        if (prefs.project_update) {
+          sendBrowserNotif(
+            '📋 Projeto atualizado',
+            `${proj.name || 'Projeto'} — Status: ${proj.status || 'atualizado'}`,
+            'proj-' + proj.id
+          );
+        }
       })
       .subscribe();
 
@@ -1990,8 +2046,8 @@ export default function AdminDashboard() {
                           <div style={{fontSize:'0.8rem',fontWeight:600}}>{item.label}</div>
                           <div style={{fontSize:'0.68rem',color:'var(--t3)',marginTop:1}}>{item.desc}</div>
                         </div>
-                        <div style={{width:40,height:22,borderRadius:11,background:'var(--gold)',cursor:'pointer',padding:2,transition:'all .3s',flexShrink:0}}>
-                          <div style={{width:18,height:18,borderRadius:9,background:'#fff',marginLeft:18,transition:'all .3s'}}></div>
+                        <div onClick={() => toggleNotifPref(item.key)} style={{width:40,height:22,borderRadius:11,background: notifPrefs[item.key] ? 'var(--gold)' : 'var(--b2)',cursor:'pointer',padding:2,transition:'all .3s',flexShrink:0}}>
+                          <div style={{width:18,height:18,borderRadius:9,background: notifPrefs[item.key] ? '#fff' : 'var(--t3)',marginLeft: notifPrefs[item.key] ? 18 : 0,transition:'all .3s'}}></div>
                         </div>
                       </div>
                     ))}
