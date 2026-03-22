@@ -25,7 +25,9 @@ export default function PartnerDashboard() {
   const [loadingDb, setLoadingDb] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [adminUser, setAdminUser] = useState<any>(null);
-  const [chatTab, setChatTab] = useState('cliente');
+  const [chatTab, setChatTab] = useState<string>('admin');
+  const [clients, setClients] = useState<any[]>([]);
+  const [selectedChatClient, setSelectedChatClient] = useState<any>(null);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, msg: string, type: 'error' | 'success'} | null>(null);
@@ -87,6 +89,10 @@ export default function PartnerDashboard() {
       // Load admin users for chat
       const { data: adminUsers } = await supabase.from('profiles').select('*').eq('role', 'admin');
       if (adminUsers && adminUsers.length > 0) setAdminUser(adminUsers[0]);
+
+      // Load clients for individual chat threads
+      const { data: clientsData } = await supabase.from('clients').select('*').order('name');
+      if (clientsData) setClients(clientsData);
 
       const { data: dLogData } = await supabase.from('daily_logs').select('*');
       if (dLogData) setLogs(dLogData);
@@ -397,10 +403,11 @@ export default function PartnerDashboard() {
 
   const sendMessage = async (content: string, ext?: string, payloadData?: any) => {
     if (!content.trim() && !payloadData) return;
+    const receiverId = chatTab === 'admin' ? (adminUser?.id || null) : (selectedChatClient?.id || null);
     const pl = payloadData ? { ...payloadData, msg_type: ext || 'text' } : { msg_type: 'text' };
     const { data, error } = await supabase.from('messages').insert([{
       sender_id: user?.id || null,
-      receiver_id: adminUser?.id || null,
+      receiver_id: receiverId,
       content: content.trim() || '📎',
       payload: pl
     }]).select().single();
@@ -457,8 +464,16 @@ export default function PartnerDashboard() {
 
   const channelMessages = messages.filter((m: any) => {
     if (!user) return false;
-    // Show messages between me and admin
-    return (m.sender_id === user.id || m.receiver_id === user.id);
+    if (chatTab === 'admin') {
+      // Messages between me and admin
+      return (m.sender_id === user.id && m.receiver_id === adminUser?.id) ||
+             (m.sender_id === adminUser?.id && m.receiver_id === user.id);
+    } else if (selectedChatClient) {
+      // Messages between me and the selected client
+      return (m.sender_id === user.id && m.receiver_id === selectedChatClient.id) ||
+             (m.sender_id === selectedChatClient.id && m.receiver_id === user.id);
+    }
+    return false;
   });
 
   // === PROFILE FUNCTIONS ===
@@ -1083,14 +1098,23 @@ export default function PartnerDashboard() {
                       </div>
                       {messages.filter((m: any) => m.topic === 'admin').length > 0 && <span className="badge gold" style={{fontSize:'0.6rem'}}>{messages.filter((m: any) => m.topic === 'admin').length}</span>}
                     </div>
-                    <div onClick={() => setChatTab('cliente')} style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',cursor:'pointer',background:chatTab === 'cliente' ? 'var(--gd)' : 'transparent',borderLeft:`3px solid ${chatTab === 'cliente' ? 'var(--gold)' : 'transparent'}`}}>
-                      <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(46,204,113,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.75rem',fontWeight:700,color:'var(--green)',flexShrink:0}}>CL</div>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:'0.82rem',fontWeight:600}}>Client Channel</div>
-                        <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.68rem',color:'var(--t3)'}}>General · Client Communication</div>
-                      </div>
-                      {messages.filter((m: any) => m.topic === 'cliente').length > 0 && <span className="badge" style={{fontSize:'0.6rem'}}>{messages.filter((m: any) => m.topic === 'cliente').length}</span>}
-                    </div>
+                    {/* Individual client conversations */}
+                    <div style={{padding:'10px 14px 4px',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--t3)',textTransform:'uppercase',letterSpacing:1}}>Clientes ({clients.length})</div>
+                    {clients.length === 0 && <div style={{padding:'8px 14px',fontSize:'0.75rem',color:'var(--t3)',fontStyle:'italic'}}>Nenhum cliente</div>}
+                    {clients.map((c: any) => {
+                      const isSelected = chatTab === 'client' && selectedChatClient?.id === c.id;
+                      const unread = messages.filter((m: any) => m.sender_id === c.id && m.receiver_id === user?.id).length;
+                      return (
+                        <div key={c.id} onClick={() => { setChatTab('client'); setSelectedChatClient(c); }} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer',background:isSelected ? 'var(--gd)' : 'transparent',borderLeft:`3px solid ${isSelected ? 'var(--gold)' : 'transparent'}`}}>
+                          <div style={{width:32,height:32,borderRadius:'50%',background:'rgba(46,204,113,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.65rem',fontWeight:700,color:'var(--green)',flexShrink:0}}>{(c.name || 'CL').substring(0,2).toUpperCase()}</div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.name || 'Cliente'}</div>
+                            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',color:'var(--t3)'}}>{c.email || c.phone || ''}</div>
+                          </div>
+                          {unread > 0 && <span className="badge gold" style={{fontSize:'0.55rem'}}>{unread}</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1098,10 +1122,10 @@ export default function PartnerDashboard() {
                 <div style={{flex:1,display:'flex',flexDirection:'column',minWidth:0}}>
                   {/* Header */}
                   <div style={{padding:'14px 18px',borderBottom:'1px solid var(--b)',display:'flex',alignItems:'center',gap:10}}>
-                    <div style={{width:32,height:32,borderRadius:'50%',background:chatTab === 'cliente' ? 'rgba(46,204,113,0.2)' : 'var(--gd)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:'0.7rem',color:chatTab === 'cliente' ? 'var(--green)' : 'var(--gold)',flexShrink:0}}>{chatTab === 'cliente' ? 'CL' : 'BH'}</div>
+                    <div style={{width:32,height:32,borderRadius:'50%',background:chatTab === 'client' ? 'rgba(46,204,113,0.2)' : 'var(--gd)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:'0.7rem',color:chatTab === 'client' ? 'var(--green)' : 'var(--gold)',flexShrink:0}}>{chatTab === 'client' ? (selectedChatClient?.name || 'CL').substring(0,2).toUpperCase() : 'BH'}</div>
                     <div style={{flex:1}}>
-                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.88rem'}}>{chatTab === 'cliente' ? 'Client Channel' : 'Bravo Homes Admin'}</div>
-                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.68rem',color:'var(--t3)'}}>{chatTab === 'cliente' ? 'Client Communication' : 'Admin · Suporte'} · 🟢 Real-time</div>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'0.88rem'}}>{chatTab === 'client' ? (selectedChatClient?.name || 'Selecione um cliente') : 'Bravo Homes Admin'}</div>
+                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.68rem',color:'var(--t3)'}}>{chatTab === 'client' ? 'Conversa individual' : 'Admin · Suporte'} · 🟢 Real-time</div>
                     </div>
                   </div>
 
