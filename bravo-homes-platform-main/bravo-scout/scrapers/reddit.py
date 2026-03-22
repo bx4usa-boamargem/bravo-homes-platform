@@ -16,6 +16,12 @@ SUBREDDITS = [
     {"name": "HomeImprovement", "search": "atlanta OR marietta OR alpharetta OR roswell OR kennesaw remodel"},
     {"name": "Atlanta", "search": "contractor OR remodel OR renovation OR kitchen OR bathroom"},
     {"name": "HomeRenovation", "search": "atlanta OR georgia remodel"},
+    # New high-value subreddits
+    {"name": "RealEstate", "search": "atlanta remodel OR renovation OR fixer upper OR contractor"},
+    {"name": "FirstTimeHomeBuyer", "search": "atlanta OR georgia remodel OR renovation OR contractor"},
+    {"name": "Flipping", "search": "atlanta OR georgia contractor OR remodel OR renovation"},
+    {"name": "DIY", "search": "atlanta OR georgia contractor OR need help OR give up OR too hard"},
+    {"name": "InteriorDesign", "search": "atlanta OR georgia remodel OR renovation OR contractor"},
 ]
 
 HEADERS = {

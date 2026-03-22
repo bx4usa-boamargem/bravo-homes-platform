@@ -19,6 +19,12 @@ SERVICE_KEYWORDS = {
     "pressure washing": ["pressure wash", "power wash", "pressure cleaning"],
     "room addition": ["room addition", "home addition", "adding a room", "home expansion", "add a room"],
     "general remodel": ["remodel", "renovation", "contractor", "handyman", "home improvement", "drywall", "backsplash", "tile"],
+    "basement remodel": ["basement remodel", "basement renovation", "basement finish", "basement conversion", "unfinished basement"],
+    "garage conversion": ["garage conversion", "garage remodel", "garage to room", "garage apartment", "adu", "accessory dwelling"],
+    "home office": ["home office", "office build", "office remodel", "work from home room", "wfh space"],
+    "siding": ["siding", "vinyl siding", "hardie board", "house siding", "siding replacement", "new siding"],
+    "roofing": ["roofing", "roof repair", "roof replacement", "new roof", "shingle", "roof leak"],
+    "windows": ["window replacement", "new windows", "window install", "energy efficient windows", "double pane"],
 }
 
 # Palavras que indicam intenção de compra
@@ -40,6 +46,11 @@ TARGET_CITIES = [
     "woodstock", "canton", "holly springs", "marietta", "smyrna",
     "vinings", "east cobb", "sandy springs", "johns creek",
     "dunwoody", "atlanta",
+    # Expanded Metro Atlanta
+    "peachtree city", "cumming", "suwanee", "lawrenceville",
+    "buford", "duluth", "decatur", "brookhaven", "tucker",
+    "norcross", "lilburn", "snellville", "stone mountain",
+    "conyers", "covington", "douglasville", "powder springs",
 ]
 
 # Palavras que DESQUALIFICAM um post (contractors, spam, etc)

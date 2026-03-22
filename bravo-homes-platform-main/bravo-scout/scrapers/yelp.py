@@ -31,6 +31,31 @@ COMPETITORS = [
         "name": "FD Remodeling Atlanta",
         "yelp_url": "https://www.yelp.com/biz/fd-remodeling-atlanta",
     },
+    # Expanded competitors
+    {
+        "name": "Re-Bath Atlanta",
+        "yelp_url": "https://www.yelp.com/biz/re-bath-atlanta-atlanta",
+    },
+    {
+        "name": "Kitchen Tune-Up Alpharetta",
+        "yelp_url": "https://www.yelp.com/biz/kitchen-tune-up-alpharetta-alpharetta",
+    },
+    {
+        "name": "Expo Home Design Atlanta",
+        "yelp_url": "https://www.yelp.com/biz/expo-home-design-atlanta",
+    },
+    {
+        "name": "Norm Hughes Homes",
+        "yelp_url": "https://www.yelp.com/biz/norm-hughes-homes-atlanta",
+    },
+    {
+        "name": "Atlanta Design and Build",
+        "yelp_url": "https://www.yelp.com/biz/atlanta-design-and-build-atlanta",
+    },
+    {
+        "name": "HomeSpec Painting and Remodeling",
+        "yelp_url": "https://www.yelp.com/biz/homespec-painting-woodstock",
+    },
 ]
 
 HEADERS = {
