@@ -98,10 +98,19 @@ async def create_lead(client_id: str, qualification: dict) -> Optional[str]:
     city = qualification.get("city", "Atlanta Metro, GA")
     service_type = f"{qualification.get('service_type', 'General Remodel')} • {city}"
 
+    # Map classificacao to pipeline status
+    status_map = {"hot": "qualified", "warm": "new", "cold": "new"}
+    lead_status = status_map.get(classificacao, "new")
+
     payload = {
         "client_id": client_id,
         "name": qualification.get("client_name", "Unknown"),
         "service_type": service_type,
+        "estimated_value": qualification.get("estimated_budget", 0),
+        "score": qualification.get("confidence", 0),
+        "source": lead_original.get("fonte", "scout"),
+        "city": city,
+        "status": lead_status,
         "notes": notas,
     }
 
