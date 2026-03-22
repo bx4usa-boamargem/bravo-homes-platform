@@ -153,7 +153,9 @@ export default function AdminDashboard() {
         showToast('Projeto criado com sucesso!');
         setIsNewProjectOpen(false);
         setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '' });
-        setTimeout(() => window.location.reload(), 1000);
+        // Refresh projects list from database
+        const { data: refreshed } = await supabase.from('projects').select('*');
+        if (refreshed) setProjects(refreshed);
       }
     }
   };

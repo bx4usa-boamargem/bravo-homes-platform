@@ -53,11 +53,10 @@ export default function Login() {
 
     setLoading(false);
 
-    const role = profile?.role || 'admin';
+    const role = profile?.role || 'cliente';
     if (role === 'admin') navigate('/admin');
     else if (role === 'parceiro') navigate('/partner');
-    else if (role === 'cliente') navigate('/client');
-    else navigate('/admin');
+    else navigate('/client');
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -84,13 +83,7 @@ export default function Login() {
     }
   };
 
-  const fillDemo = (role: 'admin' | 'parceiro') => {
-    setSelectedRole(role);
-    setActiveView('login');
-    setTimeout(() => {
-      navigate(role === 'admin' ? '/admin' : '/partner');
-    }, 500);
-  };
+
 
   return (
     <div className="login-body">

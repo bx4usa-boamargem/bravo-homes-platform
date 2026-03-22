@@ -71,7 +71,8 @@ export default function PartnerDashboard() {
       setLoadingDb(true);
       
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) setUser(currentUser);
+      if (!currentUser) { navigate('/', { replace: true }); return; }
+      setUser(currentUser);
       // ROLE GUARD: only parceiro can access this dashboard
       const { data: roleProfile } = await supabase.from('profiles').select('role').eq('id', currentUser.id).single();
       if (roleProfile && roleProfile.role && roleProfile.role !== 'parceiro') {
@@ -158,7 +159,9 @@ export default function PartnerDashboard() {
          showToast("Sucesso", "Projeto criado com sucesso!", "success");
          setIsNewProjectOpen(false);
          setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '' });
-         setTimeout(() => window.location.reload(), 1500);
+         // Refresh projects list from database
+         const { data: refreshed } = await supabase.from('projects').select('*');
+         if (refreshed) setProjects(refreshed);
       }
     } catch (err: any) {
       console.error('Unexpected Form Error:', err);
@@ -219,7 +222,7 @@ export default function PartnerDashboard() {
   };
 
   // === FILE UPLOAD FUNCTIONS ===
-  const SUPABASE_URL = 'https://tyeaqluofishcvhvpwrg.supabase.co';
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://tyeaqluofishcvhvpwrg.supabase.co';
 
   const loadProjectFiles = async (projectId?: string) => {
     const pid = projectId || uploadProjectId;
@@ -701,7 +704,7 @@ export default function PartnerDashboard() {
 
 
           <div className="topbar-pill">🟢 Online</div>
-          <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--t3)'}}>Qua, 24 Março 2026</span>
+          <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--t3)'}}>{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</span>
           <div className="theme-btn" onClick={toggleTheme} title="Alternar tema">
             {theme === 'dark' ? '☀️' : '🌙'}
           </div>
