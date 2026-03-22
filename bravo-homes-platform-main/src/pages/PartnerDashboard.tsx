@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import type { Project, Lead, Stage, CalendarEvent, Message, Client, DailyLog, ProjectDocument, EditingEvent, NewEventForm, LogForm, NewProjectForm } from '../types';
+import type { User } from '@supabase/supabase-js';
 import { useLanguage } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
 import FullCalendar from '@fullcalendar/react';
@@ -18,32 +20,32 @@ export default function PartnerDashboard() {
   }, [activeTab]);
 
   const [theme, setTheme] = useState(() => localStorage.getItem('appTheme') || 'dark');
-  const [projects, setProjects] = useState<any[]>([]);
-  const [leads, setLeads] = useState<any[]>([]);
-  const [stages, setStages] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [stages, setStages] = useState<Stage[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [logs, setLogs] = useState<DailyLog[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [adminUser, setAdminUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [adminUser, setAdminUser] = useState<User | null>(null);
   const [chatTab, setChatTab] = useState<string>('admin');
-  const [clients, setClients] = useState<any[]>([]);
-  const [selectedChatClient, setSelectedChatClient] = useState<any>(null);
-  const [deleteConfirmClient, setDeleteConfirmClient] = useState<any>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedChatClient, setSelectedChatClient] = useState<Client | null>(null);
+  const [deleteConfirmClient, setDeleteConfirmClient] = useState<Client | null>(null);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, msg: string, type: 'error' | 'success'} | null>(null);
   const [newProjectForm, setNewProjectForm] = useState({ name: '', service_type: 'Reforma', contract_value: '', deadline: '' });
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [newStageName, setNewStageName] = useState('');
-  const [projectFiles, setProjectFiles] = useState<any[]>([]);
+  const [projectFiles, setProjectFiles] = useState<ProjectDocument[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProjectId, setUploadProjectId] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isNewEventOpen, setIsNewEventOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', event_date: '', start_time: '', project_id: '' });
-  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<EditingEvent | null>(null);
   const [logForm, setLogForm] = useState({ project_id: '', log_text: '', materials: '' });
   const [isSavingLog, setIsSavingLog] = useState(false);
   const [expandedLead, setExpandedLead] = useState<string | null>(null);
@@ -55,7 +57,7 @@ export default function PartnerDashboard() {
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
   const audioChunksRef = React.useRef<Blob[]>([]);
   const [profileEditing, setProfileEditing] = useState(false);
-  const [profileForm, setProfileForm] = useState<any>({});
+  const [profileForm, setProfileForm] = useState<Record<string, string>>({});
   const [profileSaving, setProfileSaving] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ newPass: '', confirmPass: '' });
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -531,7 +533,7 @@ export default function PartnerDashboard() {
   }, [messages, user, adminUser, clients]);
 
   // === PROFILE FUNCTIONS ===
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;

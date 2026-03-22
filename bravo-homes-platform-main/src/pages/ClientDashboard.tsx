@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import type { Project } from '../types';
+import type { User } from '@supabase/supabase-js';
 import { useLanguage } from '../lib/i18n';
 import './ClientDashboard.css';
 
@@ -10,9 +12,9 @@ export default function ClientDashboard() {
   const [lightboxData, setLightboxData] = useState({ emoji: '', title: '', desc: '' });
   const { t } = useLanguage();
   
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [loadingDb, setLoadingDb] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     async function fetchProject() {

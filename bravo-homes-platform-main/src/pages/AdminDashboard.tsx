@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/i18n';
 import type { Lang } from '../lib/i18n';
+import type { Project, Lead, Partner, Client, LandingPage, CalendarEvent, Message, Profile, EditingEvent, GoogleEvent, ChatPartner } from '../types';
+import type { User } from '@supabase/supabase-js';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -39,16 +41,16 @@ export default function AdminDashboard() {
   const [theme, setTheme] = useState(() => localStorage.getItem('appTheme') || 'dark');
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   
-  const [projects, setProjects] = useState<any[]>([]);
-  const [leads, setLeads] = useState<any[]>([]);
-  const [partners, setPartners] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
-  const [landingPages, setLandingPages] = useState<any[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   // Lead Modal
-  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [notesInput, setNotesInput] = useState('');
   
   // New Lead Modal
@@ -58,7 +60,7 @@ export default function AdminDashboard() {
   // Event Modal
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventForm, setEventForm] = useState({ lead_id: '', date: '', time: '00:00', title: '' });
-  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<EditingEvent | null>(null);
 
   // LP Modal
   const [isLPOpen, setIsLPOpen] = useState(false);
@@ -67,15 +69,15 @@ export default function AdminDashboard() {
   // Partner Modal
   const [isPartnerOpen, setIsPartnerOpen] = useState(false);
   const [partnerForm, setPartnerForm] = useState({ name: '', city: '', phone: '', specialty: '', email: '', password: '' });
-  const [selectedPartner, setSelectedPartner] = useState<any>(null);
-  const [editPartner, setEditPartner] = useState<any>(null);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [editPartner, setEditPartner] = useState<Partner | null>(null);
 
   // Chat State
-  const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [selectedChatUser, setSelectedChatUser] = useState<ChatPartner | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const [allChatMessages, setAllChatMessages] = useState<any[]>([]);
+  const [allChatMessages, setAllChatMessages] = useState<Message[]>([]);
 
   // Media & Audio States
   const [isRecording, setIsRecording] = useState(false);
@@ -87,7 +89,7 @@ export default function AdminDashboard() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Profile State
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -161,10 +163,10 @@ export default function AdminDashboard() {
   };
 
   // Structured Notes State
-  const [localNotes, setLocalNotes] = useState<any[]>([]);
+  const [localNotes, setLocalNotes] = useState<{id:string;lead_id?:string;text:string;created_at:string}[]>([]);
 
   // Google Calendar States
-  const [googleEvents, setGoogleEvents] = useState<any[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<GoogleEvent[]>([]);
   const [_isGoogleLinked, setIsGoogleLinked] = useState(false);
 
   // --- GOOGLE REST API HANDLERS ---
