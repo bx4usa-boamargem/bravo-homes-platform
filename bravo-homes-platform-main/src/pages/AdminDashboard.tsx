@@ -65,6 +65,7 @@ export default function AdminDashboard() {
   const [isPartnerOpen, setIsPartnerOpen] = useState(false);
   const [partnerForm, setPartnerForm] = useState({ name: '', city: '', phone: '', specialty: '', email: '', password: '' });
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
+  const [editPartner, setEditPartner] = useState<any>(null);
 
   // Chat State
   const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
@@ -664,9 +665,12 @@ export default function AdminDashboard() {
       await new Promise(r => setTimeout(r, 1500));
       const { error: updateErr } = await supabase.from('profiles')
         .update({
+          name: partnerForm.name,
+          full_name: partnerForm.name,
           city: partnerForm.city || null,
           phone: partnerForm.phone || null,
-          specialty: partnerForm.specialty || null
+          specialty: partnerForm.specialty || null,
+          status: 'available'
         })
         .eq('id', authData.user.id);
       if (updateErr) console.warn('Campos extras não salvos:', updateErr.message);
@@ -1357,16 +1361,23 @@ export default function AdminDashboard() {
                         <tr key={p.id}>
                           <td>
                             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                              <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px'}}>{(p.name || 'N/A').substring(0,2).toUpperCase()}</div>
+                              <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px'}}>{(p.name || p.full_name || 'N/A').substring(0,2).toUpperCase()}</div>
                               <div>
-                                <b>{p.name || 'Sem nome'}</b>
+                                <b>{p.name || p.full_name || 'Sem nome'}</b>
                                 <div style={{fontSize:'.7rem', color:'var(--t2)'}}>{p.city || 'Georgia'} • {p.phone || 'Sem contato'}</div>
                               </div>
                             </div>
                           </td>
                           <td>{p.specialty || 'Empreiteiro Geral'}</td>
                           <td>{(projects.filter(proj => proj.partner_id === p.id).length) || 0}</td>
-                          <td><span className="status-b sb-active">Disponível</span></td>
+                          <td>{
+                            (() => {
+                              const st = p.status || 'available';
+                              const map: Record<string,{label:string,cls:string}> = { available: {label:'Disponível',cls:'sb-active'}, busy: {label:'Em Projeto',cls:'sb-draft'}, inactive: {label:'Inativo',cls:'sb-red'} };
+                              const s = map[st] || map.available;
+                              return <span className={`status-b ${s.cls}`}>{s.label}</span>;
+                            })()
+                          }</td>
                           <td>
                             <div style={{display:'flex', gap:'8px'}}>
                               <button className="btn ghost" style={{padding:'4px 10px',fontSize:'.7rem'}} onClick={() => setSelectedPartner(p)}>Ver Perfil</button>
@@ -2061,29 +2072,73 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* PARTNER DETALHES MODAL */}
-      <div className={`modal-overlay ${selectedPartner ? 'open' : ''}`} onClick={() => setSelectedPartner(null)}>
+      {/* PARTNER DETALHES MODAL - EDITABLE */}
+      <div className={`modal-overlay ${selectedPartner ? 'open' : ''}`} onClick={() => { setSelectedPartner(null); setEditPartner(null); }}>
         {selectedPartner && (
-          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth: '500px'}}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth: '520px'}}>
             <div className="modal-head">
               <div className="modal-title">Perfil do Parceiro</div>
-              <button className="dclose" onClick={() => setSelectedPartner(null)}>✕</button>
+              <button className="dclose" onClick={() => { setSelectedPartner(null); setEditPartner(null); }}>✕</button>
             </div>
             <div className="modal-body">
               <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px'}}>
                 <div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--gold)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold'}}>
-                  {selectedPartner.name ? selectedPartner.name.substring(0,2).toUpperCase() : 'UI'}
+                  {(selectedPartner.name || selectedPartner.full_name || 'PA').substring(0,2).toUpperCase()}
                 </div>
-                <div>
-                  <h2 style={{margin: 0, fontSize: '1.2rem', color: 'var(--gold)'}}>{selectedPartner.name}</h2>
-                  <div style={{color: 'var(--t2)', fontSize: '0.9rem'}}>{selectedPartner.specialty || 'General Contractor'}</div>
+                <div style={{flex:1}}>
+                  <h2 style={{margin: 0, fontSize: '1.2rem', color: 'var(--gold)'}}>{selectedPartner.name || selectedPartner.full_name || 'Sem nome'}</h2>
+                  <div style={{color: 'var(--t2)', fontSize: '0.9rem'}}>{selectedPartner.specialty || 'Empreiteiro Geral'}</div>
                 </div>
+                {!editPartner && <button className="btn ghost" style={{fontSize:'0.75rem',padding:'6px 12px'}} onClick={() => setEditPartner({...selectedPartner})}>✏️ Editar</button>}
               </div>
               
-              <div className="d-row">
-                <div className="dfield"><div className="dlabel">Telefone</div><div className="dval">{selectedPartner.phone || 'N/D'}</div></div>
-                <div className="dfield"><div className="dlabel">Atuação</div><div className="dval">{selectedPartner.city || 'Georgia'}</div></div>
-              </div>
+              {editPartner ? (
+                <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+                  <div className="f-row" style={{gap:'10px'}}>
+                    <div style={{flex:1}}>
+                      <label className="f-label">Nome *</label>
+                      <input className="f-inp" value={editPartner.name || editPartner.full_name || ''} onChange={e => setEditPartner({...editPartner, name: e.target.value, full_name: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="f-row" style={{gap:'10px'}}>
+                    <div style={{flex:1}}>
+                      <label className="f-label">Telefone</label>
+                      <input className="f-inp" placeholder="(000) 000-0000" value={editPartner.phone || ''} onChange={e => setEditPartner({...editPartner, phone: e.target.value})} />
+                    </div>
+                    <div style={{flex:1}}>
+                      <label className="f-label">Atuação (Cidade)</label>
+                      <input className="f-inp" placeholder="Ex: Marietta, GA" value={editPartner.city || ''} onChange={e => setEditPartner({...editPartner, city: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="f-row" style={{gap:'10px'}}>
+                    <div style={{flex:1}}>
+                      <label className="f-label">Especialidade</label>
+                      <input className="f-inp" placeholder="Ex: Piso, Elétrica" value={editPartner.specialty || ''} onChange={e => setEditPartner({...editPartner, specialty: e.target.value})} />
+                    </div>
+                    <div style={{flex:1}}>
+                      <label className="f-label">Status</label>
+                      <select className="f-inp" value={editPartner.status || 'available'} onChange={e => setEditPartner({...editPartner, status: e.target.value})}>
+                        <option value="available">Disponível</option>
+                        <option value="busy">Em Projeto</option>
+                        <option value="inactive">Inativo</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="d-row">
+                    <div className="dfield"><div className="dlabel">Telefone</div><div className="dval">{selectedPartner.phone || 'N/D'}</div></div>
+                    <div className="dfield"><div className="dlabel">Atuação</div><div className="dval">{selectedPartner.city || 'Georgia'}</div></div>
+                  </div>
+                  <div className="d-row" style={{marginTop:'10px'}}>
+                    <div className="dfield"><div className="dlabel">Especialidade</div><div className="dval">{selectedPartner.specialty || 'Empreiteiro Geral'}</div></div>
+                    <div className="dfield"><div className="dlabel">Status</div><div className="dval">{{
+                      available: 'Disponível', busy: 'Em Projeto', inactive: 'Inativo'
+                    }[selectedPartner.status as string] || 'Disponível'}</div></div>
+                  </div>
+                </>
+              )}
               
               <div className="dlabel" style={{marginTop: '20px', marginBottom: '10px'}}>Projetos Atribuídos</div>
               {projects.filter(p => p.partner_id === selectedPartner.id).length > 0 ? (
@@ -2104,9 +2159,32 @@ export default function AdminDashboard() {
                     await supabase.from('profiles').delete().eq('id', selectedPartner.id);
                     setPartners(prev => prev.filter(p => p.id !== selectedPartner.id));
                     setSelectedPartner(null);
+                    setEditPartner(null);
                  });
               }}>Remover Parceiro</button>
-              <button className="btn ghost" onClick={() => setSelectedPartner(null)}>Fechar</button>
+              {editPartner ? (
+                <div style={{display:'flex',gap:'8px',marginLeft:'auto'}}>
+                  <button className="btn ghost" onClick={() => setEditPartner(null)}>Cancelar</button>
+                  <button className="btn gold" onClick={async () => {
+                    const { error } = await supabase.from('profiles').update({
+                      name: editPartner.name || editPartner.full_name,
+                      full_name: editPartner.name || editPartner.full_name,
+                      phone: editPartner.phone || null,
+                      city: editPartner.city || null,
+                      specialty: editPartner.specialty || null,
+                      status: editPartner.status || 'available'
+                    }).eq('id', selectedPartner.id);
+                    if (error) { showToast('Erro: ' + error.message); return; }
+                    const updated = {...selectedPartner, ...editPartner};
+                    setPartners(prev => prev.map(p => p.id === selectedPartner.id ? updated : p));
+                    setSelectedPartner(updated);
+                    setEditPartner(null);
+                    showToast('Parceiro atualizado!');
+                  }}>Salvar</button>
+                </div>
+              ) : (
+                <button className="btn ghost" style={{marginLeft:'auto'}} onClick={() => { setSelectedPartner(null); setEditPartner(null); }}>Fechar</button>
+              )}
             </div>
           </div>
         )}
