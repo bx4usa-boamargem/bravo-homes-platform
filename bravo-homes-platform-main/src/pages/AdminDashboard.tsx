@@ -90,6 +90,7 @@ export default function AdminDashboard() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
+  const [adminPhone, setAdminPhone] = useState('');
 
   // Sidebar responsive
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -259,6 +260,8 @@ export default function AdminDashboard() {
          setUser(currentUser);
          setAdminName(currentUser.user_metadata?.full_name || 'Admin');
          setAdminEmail(currentUser.email || '');
+         setAdminPhone(currentUser.user_metadata?.phone || '');
+         // phone from profile will be loaded below after profile fetch
          
          const { data: profile, error: profError } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
          
@@ -274,6 +277,7 @@ export default function AdminDashboard() {
                avatar_url: currentUser.user_metadata?.avatar_url || profile.avatar_url,
                full_name: currentUser.user_metadata?.full_name || profile.full_name
             });
+             if (profile.phone) setAdminPhone(profile.phone);
          } else {
             // Se a tabela 'profiles' não existir, joga a foto salva nos metadados do auth
             setUserProfile({ avatar_url: currentUser.user_metadata?.avatar_url, full_name: currentUser.user_metadata?.full_name });
@@ -826,7 +830,7 @@ export default function AdminDashboard() {
       const updates: any = {};
       
       if (adminName !== user?.user_metadata?.full_name) {
-          updates.data = { full_name: adminName };
+          updates.data = { full_name: adminName, phone: adminPhone };
       }
       if (adminEmail !== user?.email) {
           updates.email = adminEmail;
@@ -835,7 +839,7 @@ export default function AdminDashboard() {
       const { error: authError } = await supabase.auth.updateUser(updates);
       if (authError) throw authError;
 
-      const { error: profileError } = await supabase.from('profiles').upsert({ id: user.id, full_name: adminName, role: 'admin' });
+      const { error: profileError } = await supabase.from('profiles').upsert({ id: user.id, full_name: adminName, phone: adminPhone, role: 'admin' });
       if (profileError) console.warn("Tabela profiles ausente:", profileError.message);
 
       setUserProfile((prev: any) => ({ ...prev, full_name: adminName }));
@@ -1604,7 +1608,8 @@ export default function AdminDashboard() {
                     </div>
                     <div style={{marginBottom:'10px'}}><label className="f-label">{t('fullName')}</label><input type="text" className="f-inp" value={adminName} onChange={(e) => setAdminName(e.target.value)} /></div>
                     <div style={{marginBottom:'10px'}}><label className="f-label">{t('email')}</label><input type="text" className="f-inp" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} /></div>
-                    <button className="btn gold" style={{marginTop:'4px'}} onClick={handleProfileSave}>{t('saveChanges')}</button>
+                    <div style={{marginBottom:'10px'}}><label className="f-label">Telefone</label><input type="tel" className="f-inp" placeholder="(00) 00000-0000" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} /></div>
+                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'8px'}}><button className="btn gold" onClick={handleProfileSave}>{t('saveChanges')}</button></div>
                   </div>
                 </div>
 
@@ -1702,10 +1707,9 @@ export default function AdminDashboard() {
                           <option value="es">Español</option>
                         </select>
                       </div>
-                      <div></div>
-                      <div style={{display:'flex',alignItems:'flex-end'}}>
-                        <button className="btn gold" onClick={() => showToast(t('platformSettingsSaved'))}>{t('savePlatformSettings')}</button>
-                      </div>
+                    </div>
+                    <div style={{display:'flex',justifyContent:'flex-end',marginTop:'16px'}}>
+                      <button className="btn gold" onClick={() => showToast(t('platformSettingsSaved'))}>{t('savePlatformSettings')}</button>
                     </div>
                   </div>
                 </div>
