@@ -1,0 +1,5 @@
+ALTER TABLE public.blogs 
+  ADD COLUMN IF NOT EXISTS author_name TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS author_role TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS author_bio TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS author_signature_enabled BOOLEAN DEFAULT false;

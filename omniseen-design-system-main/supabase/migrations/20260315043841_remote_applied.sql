@@ -1,0 +1,2 @@
+-- Remote migration (applied directly to remote DB)
+-- Placeholder to satisfy local migration history check

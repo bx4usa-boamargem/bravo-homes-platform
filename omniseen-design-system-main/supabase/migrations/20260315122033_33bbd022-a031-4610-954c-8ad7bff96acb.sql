@@ -1,0 +1,1 @@
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS engine text NOT NULL DEFAULT 'v1';

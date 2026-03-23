@@ -1,0 +1,22 @@
+project_id = "efraktxestopfjnnhept"
+
+[functions.generate-article-structured]
+verify_jwt = false
+
+[functions.generate-article-pro]
+verify_jwt = false
+
+[functions.generate-article-pipeline]
+verify_jwt = false
+
+[functions.generate-opportunities]
+verify_jwt = false
+
+[functions.generate-super-page]
+verify_jwt = false
+
+[functions.ai-regen-image]
+verify_jwt = false
+
+[functions.publish-to-cms]
+verify_jwt = false
