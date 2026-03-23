@@ -2316,16 +2316,26 @@ export default function AdminDashboard() {
                     <button className="btn gold" onClick={handleNotesSave} style={{alignSelf: 'stretch', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px'}}>Gravar</button>
                   </div>
 
-                  <div style={{maxHeight: '350px', overflowY: 'auto', paddingRight: '4px'}}>
+                  <div style={{maxHeight: '200px', overflowY: 'auto', paddingRight: '4px'}}>
                     {localNotes.length === 0 ? (
                       <div style={{color:'var(--t3)', fontStyle:'italic', fontSize:'0.75rem'}}>Nenhum histórico registrado.</div>
                     ) : (
                       localNotes.map((note, idx) => (
-                        <div key={note.id} style={{marginBottom: '10px', background: 'var(--bg2)', padding: '10px', borderRadius: '6px', border: '1px solid var(--b)'}}>
-                          {note.date && <div style={{fontSize: '0.65rem', color: 'var(--gold)', fontWeight:700, marginBottom:'4px'}}>{note.date}</div>}
+                        <div key={note.id} style={{marginBottom: '6px', background: 'var(--bg2)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--b)', position:'relative'}}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
+                            {note.date && <div style={{fontSize: '0.6rem', color: 'var(--gold)', fontWeight:700}}>{note.date}</div>}
+                            <button title="Excluir nota" onClick={() => {
+                              const newNotes = localNotes.filter((_: any, i: number) => i !== idx);
+                              setLocalNotes(newNotes);
+                              saveLocalNotes(newNotes);
+                            }} style={{background:'none',border:'none',cursor:'pointer',color:'var(--t3)',fontSize:'0.7rem',padding:'0 2px',lineHeight:1,opacity:0.6,transition:'opacity .2s'}}
+                              onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                              onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
+                            >🗑️</button>
+                          </div>
                           <textarea 
                             className="f-inp"
-                            style={{minHeight: '40px', height: 'auto', resize: 'vertical', width: '100%', background: 'transparent', border: 'none', padding: 0, color: 'var(--text)', outline: 'none'}}
+                            style={{minHeight: '28px', height: 'auto', resize: 'none', width: '100%', background: 'transparent', border: 'none', padding: 0, color: 'var(--text)', outline: 'none', fontSize: '0.75rem'}}
                             value={note.text}
                             onChange={(e) => {
                               const newNotes = [...localNotes];
