@@ -1851,10 +1851,10 @@ export default function AdminDashboard() {
                           <td style={{color: 'var(--t2)', fontSize: '0.85rem'}}>{c.phone || '-'}</td>
                           <td>{c.address}<div className="u-mono-tiny">{c.city}, {c.state}</div></td>
                           <td><div style={{fontSize:'0.7rem',color:'var(--t3)'}}>{new Date(c.created_at).toLocaleDateString('pt-BR')} - {new Date(c.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</div></td>
-                          <td style={{textAlign: 'center', position: 'relative'}}>
-                            <div style={{display:'flex', alignItems: 'center', justifyContent: 'center'}}>
+                          <td style={{textAlign: 'center'}}>
+                            <div style={{display:'flex', alignItems: 'center', justifyContent: 'center', gap:'16px'}}>
                               <button className="btn ghost" className="u-btn-pill" onClick={() => showToast('O Perfil Completo e Histórico de CRM do cliente estará disponível nas próximas atualizações.')}>Ver Histórico</button>
-                              <button className="btn ghost" style={{position: 'absolute', right: '16px', padding:'4px 10px',fontSize:'.85rem', color: 'var(--red)', borderColor: 'rgba(231,76,60,0.3)', display:'flex', alignItems:'center', justifyContent:'center'}} onClick={() => handleDeleteClient(c.id)} title="Excluir Cliente">🗑️</button>
+                              <button className="btn ghost" style={{padding:'3px 6px',fontSize:'.65rem', color: 'var(--red)', borderColor: 'rgba(231,76,60,0.3)', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1}} onClick={() => handleDeleteClient(c.id)} title="Excluir Cliente">🗑️</button>
                             </div>
                           </td>
                         </tr>
