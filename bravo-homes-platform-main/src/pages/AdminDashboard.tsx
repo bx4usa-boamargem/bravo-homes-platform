@@ -2342,12 +2342,10 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{width: '220px', flexShrink: 0, paddingLeft: '16px', borderLeft: '1px solid var(--b)'}}>
+                {partners.length > 0 && (<>
                 <div className="dlabel">Atribuir a Parceiro(s)</div>
                 <div style={{marginTop:'6px', marginBottom:'12px'}}>
-                  {partners.length === 0 ? (
-                    <div style={{fontSize:'0.75rem', color:'var(--t3)', fontStyle:'italic'}}>Nenhum parceiro cadastrado.</div>
-                  ) : (
-                    partners.map((p: any) => {
+                    {partners.map((p: any) => {
                       const assignedList: string[] = selectedLead.assigned_partners || [];
                       const isAssigned = assignedList.includes(p.id);
                       return (
@@ -2390,12 +2388,12 @@ export default function AdminDashboard() {
                           <div style={{width:14,height:14,borderRadius:3,border: isAssigned ? '2px solid var(--gold)' : '2px solid var(--b2)',background: isAssigned ? 'var(--gold)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',color:'#000',flexShrink:0}}>
                             {isAssigned && '✓'}
                           </div>
-                          <div style={{fontSize:'0.78rem',fontWeight: isAssigned ? 600 : 400,color: isAssigned ? 'var(--gold)' : 'var(--text)'}}>👷 {p.name}</div>
+                          <div style={{fontSize:'0.78rem',fontWeight: isAssigned ? 600 : 400,color: isAssigned ? 'var(--gold)' : 'var(--text)'}}>👷 {p.full_name || p.name || 'Parceiro'}</div>
                         </div>
                       );
-                    })
-                  )}
+                    })}
                 </div>
+                </>)}
                 
                 <div className="dlabel" style={{marginTop: '20px'}}>Outras Ações</div>
                     <button className="btn ghost" style={{width: '100%', marginBottom: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px'}} onClick={() => {
