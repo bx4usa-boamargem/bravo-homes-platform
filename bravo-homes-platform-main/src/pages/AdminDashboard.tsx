@@ -2302,9 +2302,9 @@ export default function AdminDashboard() {
                       <option value="closed">Fechado ✓</option>
                     </select>
 
-                    <button className="btn ghost" onClick={() => updateLead(selectedLead.id, {urgency: 'hot'})}>🔥 Quente</button>
-                    <button className="btn ghost" onClick={() => updateLead(selectedLead.id, {urgency: 'warm'})}>☀️ Morno</button>
-                    <button className="btn ghost" onClick={() => updateLead(selectedLead.id, {urgency: 'cool'})}>❄️ Frio</button>
+                    <button className="btn ghost" style={selectedLead.urgency === 'hot' ? {background:'rgba(201,148,58,0.15)',borderColor:'var(--gold)'} : {}} onClick={() => updateLead(selectedLead.id, {urgency: 'hot'})}>🔥 Quente</button>
+                    <button className="btn ghost" style={selectedLead.urgency === 'warm' ? {background:'rgba(201,148,58,0.15)',borderColor:'var(--gold)'} : {}} onClick={() => updateLead(selectedLead.id, {urgency: 'warm'})}>☀️ Morno</button>
+                    <button className="btn ghost" style={selectedLead.urgency === 'cool' ? {background:'rgba(201,148,58,0.15)',borderColor:'var(--gold)'} : {}} onClick={() => updateLead(selectedLead.id, {urgency: 'cool'})}>❄️ Frio</button>
                   </div>
                 </div>
 
