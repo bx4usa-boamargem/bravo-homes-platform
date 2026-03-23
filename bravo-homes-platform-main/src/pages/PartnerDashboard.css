@@ -88,7 +88,7 @@
 .msg.them{background:var(--bg3);color:var(--text);align-self:flex-start;border-bottom-left-radius:2px}
 .msg-time{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--text);margin-top:4px;opacity:0.6}
 .chat-input-wrap{border-top:1px solid var(--b);padding:12px 14px;display:flex;gap:8px}
-.chat-input{flex:1;background:var(--bg3);border:1px solid var(--b);border-radius:8px;padding:9px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;transition:border-color .2s}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--b);border-radius:8px;padding:9px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;color-scheme:dark}
 .chat-input:focus{border-color:var(--gold)}
 .btn-send{background:var(--gold);border:none;color:#0A0D12;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;transition:background .2s}
 .btn-send:hover{background:var(--gold2)}
