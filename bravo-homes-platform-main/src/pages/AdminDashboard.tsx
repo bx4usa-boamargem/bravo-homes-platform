@@ -2363,6 +2363,18 @@ export default function AdminDashboard() {
                             setSelectedLead({...selectedLead, assigned_partners: newList});
                             await updateLead(selectedLead.id, { assigned_partners: newList });
 
+                            // Notify the partner when assigned
+                            if (!isAssigned) {
+                              const leadName = selectedLead.clients?.name || selectedLead.name || 'Novo Lead';
+                              await supabase.from('notifications').insert({
+                                user_id: p.id,
+                                title: '🎯 Novo Lead atribuído a você!',
+                                body: `${leadName} — ${selectedLead.service_type || ''} — ${selectedLead.city || ''} — $${(selectedLead as any).estimated_value || '?'}`,
+                                type: 'lead_assigned',
+                                link: '/partner'
+                              });
+                            }
+
                             // When assigning a partner: create Client if not yet created
                             if (!isAssigned && !selectedLead.client_id) {
                               const { data: newClient } = await supabase.from('clients').insert({

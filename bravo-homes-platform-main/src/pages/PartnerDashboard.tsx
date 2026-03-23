@@ -63,6 +63,11 @@ export default function PartnerDashboard() {
   const [passwordForm, setPasswordForm] = useState({ newPass: '', confirmPass: '' });
   const [passwordSaving, setPasswordSaving] = useState(false);
   const profileAvatarRef = React.useRef<HTMLInputElement>(null);
+
+  // Notifications
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
   
   const showToast = (title: string, msg: string, type: 'error' | 'success' = 'success') => {
     setToastMessage({title, msg, type});
@@ -103,6 +108,10 @@ export default function PartnerDashboard() {
       if (adminRes.data && adminRes.data.length > 0) setAdminUser(adminRes.data[0]);
       if (clientsRes.data) setClients(clientsRes.data);
       if (logRes.data) setLogs(logRes.data);
+
+      // Load notifications
+      const { data: notifs } = await supabase.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
+      if (notifs) setNotifications(notifs);
 
       setLoadingDb(false);
     }
@@ -428,7 +437,26 @@ export default function PartnerDashboard() {
         });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    // Realtime notifications
+    const notifChannel = supabase.channel('partner-notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+        const notif = payload.new as any;
+        setNotifications(prev => [notif, ...prev]);
+        setNotifOpen(true);
+        // Browser push notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(notif.title, { body: notif.body, icon: '/bravo-logo.png', tag: 'notif-' + notif.id });
+        }
+      })
+      .subscribe();
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    return () => { supabase.removeChannel(channel); supabase.removeChannel(notifChannel); };
   }, []);
 
   // Auto-scroll on new messages
@@ -700,6 +728,46 @@ export default function PartnerDashboard() {
 
           <div className="topbar-pill">🟢 Online</div>
           <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--t3)'}}>{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          
+          {/* Notification Bell */}
+          <div style={{position:'relative'}}>
+            <div onClick={() => setNotifOpen(!notifOpen)} style={{cursor:'pointer',fontSize:'1.2rem',position:'relative',padding:'4px 8px',borderRadius:'8px',background: notifOpen ? 'var(--gold)' : 'transparent',transition:'all .2s'}}>
+              🔔
+              {unreadCount > 0 && (
+                <span style={{position:'absolute',top:'-2px',right:'0',background:'var(--red)',color:'#fff',fontSize:'0.55rem',fontWeight:700,borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center'}}>{unreadCount}</span>
+              )}
+            </div>
+            {notifOpen && (
+              <div style={{position:'absolute',top:'100%',right:0,width:'340px',maxHeight:'400px',overflowY:'auto',background:'var(--card)',border:'1px solid var(--b)',borderRadius:'12px',boxShadow:'0 8px 30px rgba(0,0,0,0.3)',zIndex:999,padding:'8px 0',marginTop:'8px'}}>
+                <div style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontWeight:700,fontSize:'0.85rem'}}>🔔 Notificações</span>
+                  {unreadCount > 0 && (
+                    <button style={{fontSize:'0.65rem',color:'var(--gold)',background:'none',border:'none',cursor:'pointer',fontWeight:600}} onClick={async () => {
+                      await supabase.from('notifications').update({ read: true }).eq('user_id', user?.id).eq('read', false);
+                      setNotifications(prev => prev.map(n => ({...n, read: true})));
+                    }}>Marcar todas como lidas</button>
+                  )}
+                </div>
+                {notifications.length === 0 ? (
+                  <div style={{padding:'24px',textAlign:'center',color:'var(--t3)',fontSize:'0.8rem'}}>Nenhuma notificação</div>
+                ) : (
+                  notifications.map((n: any) => (
+                    <div key={n.id} onClick={async () => {
+                      if (!n.read) {
+                        await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+                        setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read: true} : x));
+                      }
+                    }} style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',cursor:'pointer',background: n.read ? 'transparent' : 'rgba(201,148,58,0.08)',transition:'all .2s'}}>
+                      <div style={{fontSize:'0.8rem',fontWeight: n.read ? 400 : 700,color:'var(--text)'}}>{n.title}</div>
+                      <div style={{fontSize:'0.7rem',color:'var(--t3)',marginTop:'2px'}}>{n.body}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--t3)',marginTop:'4px'}}>{new Date(n.created_at).toLocaleString('pt-BR')}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="theme-btn" onClick={toggleTheme} title="Alternar tema">
             {theme === 'dark' ? '☀️' : '🌙'}
           </div>
