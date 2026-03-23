@@ -21,6 +21,10 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import SettingsTab from '../components/admin/SettingsTab';
 import ChatPanel from '../components/admin/ChatPanel';
+import CalendarTab from '../components/admin/CalendarTab';
+import PartnersTab from '../components/admin/PartnersTab';
+import ClientsTab from '../components/admin/ClientsTab';
+import SocialMediaTab from '../components/admin/SocialMediaTab';
 import './AdminDashboard.css';
 import '../styles/utilities.css';
 
@@ -1623,111 +1627,25 @@ export default function AdminDashboard() {
 
           {/* CALENDAR TAB */}
           {activeTab === 'calendar' && (
-            <div className="page active" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div className="u-section-header">
-                <div className="u-syne-title">Calendário de Vistorias e Agendamentos</div>
-                <div className="u-flex-gap-8">
-                  <button className="btn ghost" onClick={handleGoogleSync} style={{display:'flex', alignItems:'center', gap:'6px'}}>
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" style={{width:'14px'}} alt="GCal" />
-                    Sincronizar Google
-                  </button>
-                  <button className="btn gold" onClick={() => {
-                     setEventForm({ lead_id: '', date: '', time: '00:00', title: '' });
-                     setIsEventModalOpen(true);
-                  }}>+ Novo Evento</button>
-                </div>
-              </div>
-              <div className="card" style={{ flex: 1, padding: '16px', background: 'var(--bg2)' }}>
-                 <style dangerouslySetInnerHTML={{__html: `
-                   .fc { color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.85rem; }
-                   .fc-theme-standard th, .fc-theme-standard td, .fc-theme-standard .fc-scrollgrid { border-color: var(--b); }
-                   .fc-button-primary { background-color: var(--bg3) !important; border-color: var(--b) !important; color: var(--text) !important; text-transform: capitalize; }
-                   .fc-button-primary:hover { background-color: var(--gold) !important; color: #000 !important; border-color: var(--gold) !important; }
-                   .fc-button-active { background-color: var(--gold) !important; color: #000 !important; }
-                   .fc-toolbar-title { font-family: 'Syne', sans-serif; font-size: 1.2rem !important; color: var(--gold); text-transform: capitalize; }
-                   .fc-day-today { background-color: rgba(201, 148, 58, 0.05) !important; }
-                   .fc-event { cursor: move; border-radius: 4px; padding: 2px 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
-                   .fc-timegrid-slot-label { color: var(--t2); }
-                   .fc-col-header-cell-cushion { color: var(--t2); text-decoration: none; padding: 8px !important; }
-                 `}} />
-                 <FullCalendar
-                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                    initialView="timeGridWeek"
-                    headerToolbar={{
-                      left: 'prev,next today',
-                      center: 'title',
-                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    }}
-                    locale="pt-br"
-                    buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
-                    events={mapEventsForCalendar()}
-                    editable={true}
-                    droppable={true}
-                    eventDrop={handleEventDrop}
-                    eventClick={handleEventClick}
-                    dateClick={(info: any) => {
-                      const clickedDate = info.dateStr?.substring(0, 10) || '';
-                      const clickedTime = info.dateStr?.substring(11, 16) || new Date().toTimeString().substring(0, 5);
-                      setEventForm({ lead_id: '', date: clickedDate, time: clickedTime, title: '' });
-                      setIsEventModalOpen(true);
-                    }}
-                    height="100%"
-                    slotMinTime="07:00:00"
-                    slotMaxTime="20:00:00"
-                    allDaySlot={true}
-                 />
-              </div>
-            </div>
+            <CalendarTab
+              handleGoogleSync={handleGoogleSync}
+              setEventForm={setEventForm}
+              setIsEventModalOpen={setIsEventModalOpen}
+              mapEventsForCalendar={mapEventsForCalendar}
+              handleEventDrop={handleEventDrop}
+              handleEventClick={handleEventClick}
+            />
           )}
 
           {/* PARTNERS TAB */}
           {activeTab === 'partners' && (
-            <div className="page active">
-              <div className="u-section-header">
-                <div className="u-syne-title">Parceiros e Contratados</div>
-                <button className="btn ghost" onClick={() => setIsPartnerOpen(true)}>Adicionar Parceiro</button>
-              </div>
-              <div className="card">
-                <div className="cb" className="u-p-0">
-                  <table className="tbl">
-                    <thead><tr><th>Nome / Cidade</th><th>Especialidade</th><th>Projetos</th><th>Status</th><th>Ações</th></tr></thead>
-                    <tbody>
-                      {partners.length === 0 && !loadingDb && (
-                        <tr><td colSpan={5} className="u-empty-state">Nenhum parceiro encontrado.</td></tr>
-                      )}
-                      {partners.map((p: any) => (
-                        <tr key={p.id}>
-                          <td>
-                            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                              <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px'}}>{(p.name || p.full_name || 'N/A').substring(0,2).toUpperCase()}</div>
-                              <div>
-                                <b>{p.name || p.full_name || 'Sem nome'}</b>
-                                <div className="u-mono-tiny">{p.city || 'Georgia'} • {p.phone || 'Sem contato'}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>{p.specialty || 'Empreiteiro Geral'}</td>
-                          <td>{(projects.filter(proj => proj.partner_id === p.id).length) || 0}</td>
-                          <td>{
-                            (() => {
-                              const st = p.state || 'available';
-                              const map: Record<string,{label:string,cls:string}> = { available: {label:'Disponível',cls:'sb-active'}, busy: {label:'Em Projeto',cls:'sb-draft'}, inactive: {label:'Inativo',cls:'sb-red'} };
-                              const s = map[st] || map.available;
-                              return <span className={`status-b ${s.cls}`}>{s.label}</span>;
-                            })()
-                          }</td>
-                          <td>
-                            <div className="u-flex-gap-8">
-                              <button className="btn ghost" className="u-btn-pill" onClick={() => setSelectedPartner(p)}>Ver Perfil</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <PartnersTab
+              partners={partners}
+              projects={projects}
+              loadingDb={loadingDb}
+              setIsPartnerOpen={setIsPartnerOpen}
+              setSelectedPartner={setSelectedPartner}
+            />
           )}
 
           {/* ALL LEADS TAB */}
@@ -1824,156 +1742,26 @@ export default function AdminDashboard() {
 
           {/* CLIENTS TAB */}
           {activeTab === 'clients' && (
-            <div className="page active">
-              <div className="u-section-header">
-                <div className="u-syne-title">Clientes da Bravo Homes</div>
-                <button className="btn gold" onClick={() => setIsNewLeadOpen(true)}>+ Novo Cliente</button>
-              </div>
-              <div className="card">
-                <div className="cb" className="u-p-0">
-                  <table className="tbl">
-                    <thead><tr>
-                      <th style={{width: '20%'}}>Nome do Cliente</th>
-                      <th style={{width: '20%'}}>Email</th>
-                      <th style={{width: '15%'}}>Telefone</th>
-                      <th style={{width: '20%'}}>Endereço / Cidade</th>
-                      <th style={{width: '10%'}}>Criado</th>
-                      <th style={{width: '15%', textAlign: 'center'}}>Ações</th>
-                    </tr></thead>
-                    <tbody>
-                      {/* Show all clients */}
-                      {clients.length === 0 && !loadingDb && <tr><td colSpan={6} className="u-empty-state">Nenhum cliente cadastrado.</td></tr>}
-                      {clients.map(c => (
-                        <tr key={c.id}>
-                          <td><b>{c.name}</b></td>
-                          <td>{c.email}</td>
-                          <td style={{color: 'var(--t2)', fontSize: '0.85rem'}}>{c.phone || '-'}</td>
-                          <td>{c.address}<div className="u-mono-tiny">{c.city}, {c.state}</div></td>
-                          <td><div style={{fontSize:'0.7rem',color:'var(--t3)'}}>{new Date(c.created_at).toLocaleDateString('pt-BR')} - {new Date(c.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</div></td>
-                          <td style={{textAlign: 'center'}}>
-                            <div style={{display:'flex', alignItems: 'center', justifyContent: 'center', gap:'16px'}}>
-                              <button className="btn ghost" className="u-btn-pill" onClick={() => showToast('O Perfil Completo e Histórico de CRM do cliente estará disponível nas próximas atualizações.')}>Ver Histórico</button>
-                              <button className="btn ghost" style={{padding:'3px 6px',fontSize:'.65rem', color: 'var(--red)', borderColor: 'rgba(231,76,60,0.3)', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1}} onClick={() => handleDeleteClient(c.id)} title="Excluir Cliente">🗑️</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <ClientsTab
+              clients={clients}
+              loadingDb={loadingDb}
+              setIsNewLeadOpen={setIsNewLeadOpen}
+              showToast={showToast}
+              handleDeleteClient={handleDeleteClient}
+            />
           )}
 
           {/* SOCIAL MEDIA TAB */}
           {activeTab === 'social' && (
-            <div className="page active">
-              <div className="u-section-header">
-                <div className="u-syne-title">📱 Social Media</div>
-              </div>
-
-              {/* Connection Status */}
-              <div className="card" style={{marginBottom: '16px'}}>
-                <div className="ch"><span className="ct">Contas Conectadas</span></div>
-                <div className="cb">
-                  {(() => {
-                    const fbAccount = socialAccounts.find(a => a.platform === 'facebook');
-                    const igAccount = socialAccounts.find(a => a.platform === 'instagram');
-                    return (
-                      <div style={{display:'flex',gap:'16px',flexWrap:'wrap'}}>
-                        <div style={{flex:1,minWidth:'200px',padding:'16px',borderRadius:'10px',border: fbAccount ? '1px solid rgba(66,103,178,0.4)' : '1px solid var(--b)',background: fbAccount ? 'rgba(66,103,178,0.1)' : 'transparent'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                            <span style={{fontSize:'1.4rem'}}>📘</span>
-                            <b>Facebook</b>
-                            {fbAccount && <span style={{color:'#4ade80',fontSize:'0.75rem'}}>● Conectado</span>}
-                          </div>
-                          {fbAccount ? (
-                            <div style={{fontSize:'0.8rem',color:'var(--t2)'}}>Page: <b>{fbAccount.page_name}</b></div>
-                          ) : (
-                            <button className="btn gold" style={{marginTop:'8px'}} onClick={handleFbConnect}>Conectar Facebook</button>
-                          )}
-                        </div>
-                        <div style={{flex:1,minWidth:'200px',padding:'16px',borderRadius:'10px',border: igAccount ? '1px solid rgba(193,53,132,0.4)' : '1px solid var(--b)',background: igAccount ? 'rgba(193,53,132,0.1)' : 'transparent'}}>
-                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                            <span style={{fontSize:'1.4rem'}}>📸</span>
-                            <b>Instagram</b>
-                            {igAccount && <span style={{color:'#4ade80',fontSize:'0.75rem'}}>● Conectado</span>}
-                          </div>
-                          {igAccount ? (
-                            <div style={{fontSize:'0.8rem',color:'var(--t2)'}}>Business ID: <b>{igAccount.ig_business_id}</b></div>
-                          ) : (
-                            <div style={{fontSize:'0.8rem',color:'var(--t3)',fontStyle:'italic'}}>Conecte o Facebook primeiro. O Instagram vinculado será detectado automaticamente.</div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              {/* Post Editor */}
-              {socialAccounts.length > 0 && (
-                <div className="card" style={{marginBottom: '16px'}}>
-                  <div className="ch"><span className="ct">Criar Publicação</span></div>
-                  <div className="cb">
-                    <textarea
-                      className="f-inp"
-                      style={{minHeight:'100px',resize:'vertical',marginBottom:'12px'}}
-                      placeholder="Escreva a legenda do seu post..."
-                      value={socialPostForm.content}
-                      onChange={e => setSocialPostForm({...socialPostForm, content: e.target.value})}
-                    />
-                    <div className="f-row" style={{marginBottom:'12px'}}>
-                      <div style={{flex:1}}>
-                        <label className="f-label">URL da Imagem (opcional)</label>
-                        <input type="text" className="f-inp" placeholder="https://exemplo.com/imagem.jpg" value={socialPostForm.image_url} onChange={e => setSocialPostForm({...socialPostForm, image_url: e.target.value})} />
-                      </div>
-                    </div>
-                    <div style={{display:'flex',gap:'16px',alignItems:'center',marginBottom:'12px'}}>
-                      <label style={{display:'flex',alignItems:'center',gap:'6px',cursor:'pointer'}}>
-                        <input type="checkbox" checked={socialPostForm.facebook} onChange={e => setSocialPostForm({...socialPostForm, facebook: e.target.checked})} />
-                        📘 Facebook
-                      </label>
-                      <label style={{display:'flex',alignItems:'center',gap:'6px',cursor:'pointer'}}>
-                        <input type="checkbox" checked={socialPostForm.instagram} onChange={e => setSocialPostForm({...socialPostForm, instagram: e.target.checked})} disabled={!socialAccounts.find(a => a.platform === 'instagram')} />
-                        📸 Instagram {!socialAccounts.find(a => a.platform === 'instagram') && <span style={{fontSize:'0.7rem',color:'var(--t3)'}}>(não conectado)</span>}
-                      </label>
-                    </div>
-                    <button className="btn gold" disabled={socialPosting || !socialPostForm.content.trim()} onClick={handleSocialPublish}>
-                      {socialPosting ? '⏳ Publicando...' : '🚀 Publicar Agora'}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Post History */}
-              <div className="card">
-                <div className="ch"><span className="ct">Histórico de Publicações</span></div>
-                <div className="cb" style={{padding: 0}}>
-                  <table className="tbl">
-                    <thead><tr>
-                      <th>Plataforma</th>
-                      <th>Conteúdo</th>
-                      <th>Status</th>
-                      <th>Data</th>
-                      <th>Link</th>
-                    </tr></thead>
-                    <tbody>
-                      {socialPosts.length === 0 && <tr><td colSpan={5} className="u-empty-state">Nenhuma publicação ainda.</td></tr>}
-                      {socialPosts.map(sp => (
-                        <tr key={sp.id}>
-                          <td>{sp.platform === 'facebook' ? '📘 Facebook' : '📸 Instagram'}</td>
-                          <td style={{maxWidth:'250px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sp.content}</td>
-                          <td><span style={{padding:'2px 8px',borderRadius:'10px',fontSize:'0.7rem',background: sp.status === 'published' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)',color: sp.status === 'published' ? '#4ade80' : '#fbbf24'}}>{sp.status === 'published' ? '✅ Publicado' : sp.status}</span></td>
-                          <td style={{fontSize:'0.75rem',color:'var(--t3)'}}>{sp.published_at ? new Date(sp.published_at).toLocaleString('pt-BR') : '-'}</td>
-                          <td>{sp.post_url ? <a href={sp.post_url} target="_blank" rel="noreferrer" style={{color:'var(--gold)'}}>Ver ↗</a> : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <SocialMediaTab
+              socialAccounts={socialAccounts}
+              socialPosts={socialPosts}
+              socialPostForm={socialPostForm}
+              setSocialPostForm={setSocialPostForm}
+              socialPosting={socialPosting}
+              handleSocialPublish={handleSocialPublish}
+              handleFbConnect={handleFbConnect}
+            />
           )}
 
           {/* FINANCES TAB */}
