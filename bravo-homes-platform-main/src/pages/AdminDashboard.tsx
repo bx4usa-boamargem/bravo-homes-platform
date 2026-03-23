@@ -338,52 +338,59 @@ export default function AdminDashboard() {
     // Handle new client creation if needed
     let finalClientId = client_id;
     if (projectClientMode === 'new' && newClientName.trim()) {
-      const { data: newClient } = await supabase.from('clients').insert({ name: newClientName.trim(), state: 'GA' }).select().single();
+      const { data: newClient } = await supabase.from('clients').insert({ name: newClientName.trim() }).select().single();
       if (newClient) {
         finalClientId = newClient.id;
         setClients(prev => [...prev, newClient]);
       }
     }
+
+    // Base fields (always exist)
+    const baseData: any = {
+      name,
+      service_type: service_type || 'Reforma Residencial',
+      contract_value: contract_value ? parseInt(contract_value) : 0,
+      deadline: deadline || null,
+    };
+
+    // Extra fields (may not exist in DB yet)
+    const fullData: any = {
+      ...baseData,
+      start_date: start_date || null,
+      client_id: finalClientId || null,
+    };
     
     if (editingProjectId) {
-      const { error } = await supabase.from('projects').update({ 
-        name, 
-        service_type: service_type || 'Reforma Residencial', 
-        contract_value: contract_value ? parseInt(contract_value) : 0,
-        deadline: deadline || null,
-        start_date: start_date || null,
-        client_id: finalClientId || null
-      }).eq('id', editingProjectId);
+      // Try with all fields first, fallback to base fields
+      let { error } = await supabase.from('projects').update(fullData).eq('id', editingProjectId);
+      if (error && error.message.includes('column')) {
+        ({ error } = await supabase.from('projects').update(baseData).eq('id', editingProjectId));
+      }
       if (error) {
         showToast('Erro ao atualizar projeto: ' + error.message);
       } else {
         showToast('Projeto atualizado com sucesso!');
-        setProjects(prev => prev.map(p => p.id === editingProjectId ? { ...p, name, service_type, contract_value: contract_value ? parseInt(contract_value) : 0, deadline, start_date, client_id: finalClientId } : p));
-        setIsNewProjectOpen(false);
-        setEditingProjectId(null);
-        setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '', start_date: '', client_id: '' });
+        setProjects(prev => prev.map(p => p.id === editingProjectId ? { ...p, ...fullData } : p));
       }
     } else {
-      const { error } = await supabase.from('projects').insert([{ 
-        name, 
-        service_type: service_type || 'Reforma Residencial', 
-        status: 'active', 
-        progress: 0,
-        contract_value: contract_value ? parseInt(contract_value) : 0,
-        deadline: deadline || null,
-        start_date: start_date || null,
-        client_id: finalClientId || null
-      }]);
+      let { error } = await supabase.from('projects').insert([{ ...fullData, status: 'active', progress: 0 }]);
+      if (error && error.message.includes('column')) {
+        ({ error } = await supabase.from('projects').insert([{ ...baseData, status: 'active', progress: 0 }]));
+      }
       if (error) {
         showToast('Erro ao criar projeto: ' + error.message);
       } else {
         showToast('Projeto criado com sucesso!');
-        setIsNewProjectOpen(false);
-        setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '', start_date: '', client_id: '' });
         const { data: refreshed } = await supabase.from('projects').select('*');
         if (refreshed) setProjects(refreshed);
       }
     }
+
+    // Always close popup
+    setIsNewProjectOpen(false);
+    setEditingProjectId(null);
+    setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '', start_date: '', client_id: '' });
+    setNewClientName('');
   };
 
   // Structured Notes State
