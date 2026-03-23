@@ -55,7 +55,7 @@ async def run_scan():
 
     # 1. Executar scrapers (apenas os que funcionam de cloud IPs)
     scrapers = [
-        ("Craigslist RSS", scrape_craigslist),
+        # ("Craigslist RSS", scrape_craigslist),           # 403 Blocked from cloud IPs
         ("Reddit RSS", scrape_reddit),
         ("Yelp API", scrape_yelp_reviews),
         # DESATIVADOS — bloqueados de cloud IPs:
@@ -162,6 +162,97 @@ async def trigger_scan():
     """Endpoint para disparar um scan manualmente"""
     asyncio.create_task(run_scan())
     return {"message": "Scan iniciado em background"}
+
+
+@app.get("/debug-scan")
+async def debug_scan():
+    """Endpoint de debug: roda scrapers inline e retorna detalhes"""
+    import traceback as tb
+    scrapers = [
+        ("Craigslist RSS", scrape_craigslist),
+        ("Reddit RSS", scrape_reddit),
+        ("Yelp API", scrape_yelp_reviews),
+    ]
+    results = {}
+    for name, scraper_fn in scrapers:
+        try:
+            raw_leads = await scraper_fn()
+            results[name] = {
+                "status": "ok",
+                "count": len(raw_leads),
+                "sample": [l.get("texto_original", "")[:100] for l in raw_leads[:3]],
+            }
+        except Exception as e:
+            results[name] = {
+                "status": "error",
+                "error": str(e),
+                "traceback": tb.format_exc(),
+            }
+    return {"scrapers": results, "qualifier_url": os.getenv("QUALIFIER_URL", "NOT SET")}
+
+
+@app.get("/debug-http")
+async def debug_http():
+    """Test raw HTTP requests to see what each source actually returns"""
+    import httpx
+    test_urls = [
+        ("Craigslist RSS - remodel", "https://atlanta.craigslist.org/search/hss?format=rss&query=remodel"),
+        ("Craigslist RSS - contractor", "https://atlanta.craigslist.org/search/hss?format=rss&query=contractor"),
+        ("Craigslist RSS - kitchen", "https://atlanta.craigslist.org/search/hss?format=rss&query=kitchen"),
+        ("Craigslist RSS - no query", "https://atlanta.craigslist.org/search/hss?format=rss"),
+        ("Reddit RSS - r/Atlanta", "https://www.reddit.com/r/Atlanta/new.rss?limit=5"),
+        ("Reddit RSS - search", "https://www.reddit.com/r/Atlanta/search.rss?q=contractor&sort=new&t=week&restrict_sr=on"),
+    ]
+    results = {}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    async with httpx.AsyncClient(timeout=15.0, headers=headers, follow_redirects=True) as client:
+        for name, url in test_urls:
+            try:
+                resp = await client.get(url)
+                results[name] = {
+                    "status_code": resp.status_code,
+                    "content_length": len(resp.text),
+                    "content_type": resp.headers.get("content-type", "unknown"),
+                    "first_500_chars": resp.text[:500],
+                }
+            except Exception as e:
+                results[name] = {"error": str(e)}
+    return results
+
+
+@app.get("/debug-reddit")
+async def debug_reddit():
+    """Test Reddit RSS fetch + feedparser parse on a single feed"""
+    import httpx
+    import feedparser
+    url = "https://www.reddit.com/r/Atlanta/new.rss?limit=5"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"}
+    async with httpx.AsyncClient(timeout=15.0, headers=headers, follow_redirects=True) as client:
+        try:
+            resp = await client.get(url)
+            feed = feedparser.parse(resp.text)
+            entries_data = []
+            for e in feed.entries[:3]:
+                entries_data.append({
+                    "title": e.get("title", "?")[:100],
+                    "link": e.get("link", "?"),
+                    "author": e.get("author", "?"),
+                    "summary_len": len(e.get("summary", "")),
+                })
+            return {
+                "url": url,
+                "http_status": resp.status_code,
+                "response_length": len(resp.text),
+                "content_type": resp.headers.get("content-type", "?"),
+                "feedparser_version": feed.get("version", "?"),
+                "feed_title": feed.feed.get("title", "?") if hasattr(feed, 'feed') else "?",
+                "entries_count": len(feed.entries),
+                "entries": entries_data,
+                "first_200_chars": resp.text[:200],
+            }
+        except Exception as e:
+            import traceback
+            return {"error": str(e), "traceback": traceback.format_exc()}
 
 
 # ============================================================
