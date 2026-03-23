@@ -1406,10 +1406,7 @@ export default function AdminDashboard() {
         <div className="topbar">
           <button className="sb-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
           <div className="topbar-title">{{'lp':t('topbarLandingPages'),'allleads':t('topbarAllLeads'),'adminchat':t('topbarChat'),'projects':t('topbarProjects'),'pipeline':t('topbarPipeline'),'calendar':t('topbarCalendar'),'partners':t('topbarPartners'),'clients':t('topbarClients'),'finances':t('topbarFinances'),'settings':t('topbarSettings'),'dashboard':t('topbarDashboard')}[activeTab] || activeTab.toUpperCase()}</div>
-          <div className="topbar-actions">
-            <button className="btn ghost" onClick={() => window.open('/partner', '_blank')} style={{padding: '6px 12px'}}>{t('partnerView')}</button>
-            <button className="btn ghost" onClick={() => window.open('/client', '_blank')} style={{padding: '6px 12px'}}>{t('clientView')}</button>
-          </div>
+          <div className="topbar-actions"></div>
           <div className="notif-btn" onClick={() => setIsNotifOpen(!isNotifOpen)} title="Notificações">
             🔔
             <div className={`notif-dot ${isNotifOpen ? 'on' : ''}`}></div>
