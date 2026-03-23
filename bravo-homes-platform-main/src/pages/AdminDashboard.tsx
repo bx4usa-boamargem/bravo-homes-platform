@@ -530,7 +530,7 @@ export default function AdminDashboard() {
         supabase.from('landing_pages').select('*'),
         supabase.from('clients').select('*'),
         supabase.from('profiles').select('*').eq('role', 'parceiro'),
-        currentUser ? supabase.from('messages').select('sender_id, receiver_id').or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`) : Promise.resolve({ data: null }),
+        supabase.from('messages').select('sender_id, receiver_id'),
         supabase.from('calendar_events').select('*'),
       ]);
 
@@ -608,13 +608,13 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  // Chat Effect
+  // Chat Effect — load ALL messages involving this partner (across all admins)
   useEffect(() => {
-    if (!selectedChatUser || !user) return;
+    if (!selectedChatUser) return;
     const fetchMsgs = async () => {
       const { data } = await supabase.from('messages')
         .select('*')
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedChatUser.id}),and(sender_id.eq.${selectedChatUser.id},receiver_id.eq.${user.id})`)
+        .or(`sender_id.eq.${selectedChatUser.id},receiver_id.eq.${selectedChatUser.id}`)
         .order('created_at', { ascending: true });
       if (data) setMessages(data);
     };
@@ -623,8 +623,7 @@ export default function AdminDashboard() {
     const channel = supabase.channel('chat_messages')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const msg = payload.new as Message;
-        if ((msg.sender_id === user.id && msg.receiver_id === selectedChatUser.id) ||
-            (msg.sender_id === selectedChatUser.id && msg.receiver_id === user.id)) {
+        if (msg.sender_id === selectedChatUser.id || msg.receiver_id === selectedChatUser.id) {
           setMessages(prev => {
             if (prev.some(m => m.id === msg.id)) return prev;
             return [...prev.filter(m => !m.id?.toString().includes('.')), msg];
@@ -634,22 +633,22 @@ export default function AdminDashboard() {
       .subscribe();
       
     return () => { supabase.removeChannel(channel); };
-  }, [selectedChatUser, user]);
+  }, [selectedChatUser]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Compute chat partners from actual messages (only those with active conversations)
+  // Compute chat partners from actual messages — show ALL partners with conversations (not filtered by current admin)
   const chatPartners = React.useMemo(() => {
-    if (!user) return [];
-    const contactIds = new Set<string>();
+    const partnerIds = new Set<string>();
+    const partnerIdSet = new Set(partners.map(p => p.id));
     allChatMessages.forEach((m: any) => {
-      if (m.sender_id === user.id && m.receiver_id) contactIds.add(m.receiver_id);
-      if (m.receiver_id === user.id && m.sender_id) contactIds.add(m.sender_id);
+      if (partnerIdSet.has(m.sender_id)) partnerIds.add(m.sender_id);
+      if (partnerIdSet.has(m.receiver_id)) partnerIds.add(m.receiver_id);
     });
-    return partners.filter(p => contactIds.has(p.id));
-  }, [allChatMessages, user, partners]);
+    return partners.filter(p => partnerIds.has(p.id));
+  }, [allChatMessages, partners]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
