@@ -53,15 +53,16 @@ async def run_scan():
     stats["total_scans"] += 1
     all_raw_leads = []
 
-    # 1. Executar scrapers
+    # 1. Executar scrapers (apenas os que funcionam de cloud IPs)
     scrapers = [
-        ("Craigslist", scrape_craigslist),
-        ("Reddit", scrape_reddit),
-        ("Yelp", scrape_yelp_reviews),
-        ("Facebook Groups", scrape_facebook_groups),
-        ("Google Maps Reviews", scrape_google_maps),
-        ("Twitter/X", scrape_twitter),
-        ("Nextdoor", scrape_nextdoor),
+        ("Craigslist RSS", scrape_craigslist),
+        ("Reddit RSS", scrape_reddit),
+        ("Yelp API", scrape_yelp_reviews),
+        # DESATIVADOS — bloqueados de cloud IPs:
+        # ("Facebook Groups", scrape_facebook_groups),    # Exige login
+        # ("Google Maps Reviews", scrape_google_maps),    # Google CAPTCHA
+        # ("Twitter/X", scrape_twitter),                  # Nitter morto
+        # ("Nextdoor", scrape_nextdoor),                  # Google CAPTCHA
     ]
 
     for name, scraper_fn in scrapers:

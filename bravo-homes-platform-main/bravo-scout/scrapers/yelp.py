@@ -1,144 +1,148 @@
 """
-scrapers/yelp.py — Scraper de Reviews do Yelp
+scrapers/yelp.py — Scraper de Reviews do Yelp via Fusion API
 
-Monitora reviews de 1-3 estrelas dos concorrentes na região de Atlanta.
-Usa scraping público (sem API key necessária).
+Monitora reviews de concorrentes de remodeling em Atlanta.
+Usa a Yelp Fusion API (gratuita, 5000 req/dia) para buscar
+negócios e reviews de forma confiável.
+
+Requer: YELP_API_KEY no .env
 """
 
 import httpx
-from bs4 import BeautifulSoup
 from datetime import datetime
-from typing import Optional
 import uuid
-import re
+import os
 
+YELP_API_KEY = os.getenv("YELP_API_KEY", "")
 
-# Concorrentes para monitorar reviews
-COMPETITORS = [
-    {
-        "name": "Cornerstone Remodeling Atlanta",
-        "yelp_url": "https://www.yelp.com/biz/cornerstone-remodeling-atlanta",
-    },
-    {
-        "name": "Classic Baths by Design",
-        "yelp_url": "https://www.yelp.com/biz/classic-baths-by-design-atlanta",
-    },
-    {
-        "name": "Five Star Bath Solutions Marietta",
-        "yelp_url": "https://www.yelp.com/biz/five-star-bath-solutions-of-marietta-marietta",
-    },
-    {
-        "name": "FD Remodeling Atlanta",
-        "yelp_url": "https://www.yelp.com/biz/fd-remodeling-atlanta",
-    },
-    # Expanded competitors
-    {
-        "name": "Re-Bath Atlanta",
-        "yelp_url": "https://www.yelp.com/biz/re-bath-atlanta-atlanta",
-    },
-    {
-        "name": "Kitchen Tune-Up Alpharetta",
-        "yelp_url": "https://www.yelp.com/biz/kitchen-tune-up-alpharetta-alpharetta",
-    },
-    {
-        "name": "Expo Home Design Atlanta",
-        "yelp_url": "https://www.yelp.com/biz/expo-home-design-atlanta",
-    },
-    {
-        "name": "Norm Hughes Homes",
-        "yelp_url": "https://www.yelp.com/biz/norm-hughes-homes-atlanta",
-    },
-    {
-        "name": "Atlanta Design and Build",
-        "yelp_url": "https://www.yelp.com/biz/atlanta-design-and-build-atlanta",
-    },
-    {
-        "name": "HomeSpec Painting and Remodeling",
-        "yelp_url": "https://www.yelp.com/biz/homespec-painting-woodstock",
-    },
+# Search queries for finding remodeling businesses in Atlanta
+SEARCH_TERMS = [
+    "bathroom remodeling",
+    "kitchen remodeling",
+    "home renovation",
+    "general contractor",
+    "deck builder",
+    "flooring contractor",
+    "painting contractor",
+    "home remodeling",
 ]
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-}
+NEGATIVE_KEYWORDS = [
+    "terrible", "worst", "never again", "rip off", "scam", "horrible",
+    "unfinished", "abandoned", "didn't finish", "didn't show", "ghosted",
+    "poor quality", "overcharged", "damaged", "ruined", "incompetent",
+    "still waiting", "never completed", "looking for another", "need new",
+    "don't use", "avoid", "unprofessional", "sloppy", "took forever",
+    "way too long", "still broken", "made it worse", "nightmare",
+    "disappointed", "regret", "warning", "beware", "stay away",
+]
 
 
 async def scrape_yelp_reviews() -> list[dict]:
     """
-    Busca reviews recentes de 1-3 estrelas dos concorrentes no Yelp.
-    Reviews negativas = oportunidade de "Review Rescue" para a Bravo.
+    Busca reviews de concorrentes via Yelp Fusion API.
+    Foca em reviews negativas (1-2 estrelas) = oportunidade de lead.
     """
+    if not YELP_API_KEY:
+        print("  ⚠️ Yelp: YELP_API_KEY não configurada — pulando scraper")
+        print("  💡 Dica: Crie uma API key gratuita em https://www.yelp.com/developers")
+        return []
+
     leads = []
+    seen_biz = set()
 
-    async with httpx.AsyncClient(timeout=20.0, headers=HEADERS, follow_redirects=True) as client:
-        for competitor in COMPETITORS:
+    headers = {
+        "Authorization": f"Bearer {YELP_API_KEY}",
+        "Accept": "application/json",
+    }
+
+    async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
+        for term in SEARCH_TERMS:
             try:
-                # Buscar página de reviews recentes
-                url = f"{competitor['yelp_url']}?sort_by=date_desc"
-                response = await client.get(url)
+                # Step 1: Search for businesses
+                search_url = "https://api.yelp.com/v3/businesses/search"
+                params = {
+                    "term": term,
+                    "location": "Atlanta, GA",
+                    "sort_by": "review_count",
+                    "limit": 5,
+                }
 
+                response = await client.get(search_url, params=params)
+
+                if response.status_code == 401:
+                    print(f"  ❌ Yelp: API key inválida ou expirada")
+                    return leads
                 if response.status_code != 200:
-                    print(f"⚠️ Yelp {competitor['name']}: HTTP {response.status_code}")
+                    print(f"  ⚠️ Yelp search '{term}': HTTP {response.status_code}")
                     continue
 
-                soup = BeautifulSoup(response.text, "html.parser")
+                data = response.json()
+                businesses = data.get("businesses", [])
 
-                # Buscar reviews (estrutura do Yelp pode mudar)
-                review_elements = soup.select('[data-review-id]')
-                if not review_elements:
-                    # Fallback: buscar por aria-label com estrelas
-                    review_elements = soup.select('.review__09f24__oHr9V, .comment__09f24__gu0rG, [class*="review"]')
+                for biz in businesses:
+                    biz_id = biz.get("id", "")
+                    if biz_id in seen_biz:
+                        continue
+                    seen_biz.add(biz_id)
 
-                for review_el in review_elements[:10]:  # Limitar a 10 reviews
-                    try:
-                        # Extrair rating (1-5 estrelas)
-                        rating_el = review_el.select_one('[aria-label*="star"]')
-                        if not rating_el:
-                            continue
+                    biz_name = biz.get("name", "Unknown")
+                    rating = biz.get("rating", 5)
 
-                        rating_text = rating_el.get("aria-label", "")
-                        rating_match = re.search(r'(\d)', rating_text)
-                        if not rating_match:
-                            continue
-
-                        rating = int(rating_match.group(1))
-
-                        # Só capturar reviews de 1-3 estrelas (insatisfeitos)
-                        if rating > 3:
-                            continue
-
-                        # Extrair texto da review
-                        text_el = review_el.select_one('[class*="comment"], p, span.raw__09f24__T4Ezm')
-                        review_text = text_el.get_text(strip=True) if text_el else ""
-
-                        if len(review_text) < 20:
-                            continue
-
-                        # Extrair nome do reviewer
-                        name_el = review_el.select_one('[class*="user-passport"] a, [class*="name"]')
-                        reviewer_name = name_el.get_text(strip=True) if name_el else "Unknown"
-
-                        lead = {
-                            "lead_id": str(uuid.uuid4()),
-                            "fonte": "yelp",
-                            "grupo_ou_pagina": f"Yelp: {competitor['name']}",
-                            "texto_original": review_text,
-                            "nome_autor": reviewer_name.split()[0] if reviewer_name else "Unknown",
-                            "post_url": competitor["yelp_url"],
-                            "data_post": datetime.now().isoformat(),
-                            "tipo": "review_negativa_concorrente",
-                            "rating": rating,
-                            "timestamp_captura": datetime.now().isoformat(),
-                        }
-                        leads.append(lead)
-
-                    except Exception as e:
+                    # Only look at businesses with some negative reviews (< 4.5 stars)
+                    if rating >= 4.5:
                         continue
 
-                print(f"✅ Yelp {competitor['name']}: {len([l for l in leads if competitor['name'] in l.get('grupo_ou_pagina', '')])} reviews negativas")
+                    # Step 2: Get reviews for this business
+                    try:
+                        reviews_url = f"https://api.yelp.com/v3/businesses/{biz_id}/reviews?sort_by=newest&limit=5"
+                        rev_response = await client.get(reviews_url)
+
+                        if rev_response.status_code != 200:
+                            continue
+
+                        rev_data = rev_response.json()
+                        reviews = rev_data.get("reviews", [])
+
+                        for review in reviews:
+                            rev_rating = review.get("rating", 5)
+                            rev_text = review.get("text", "")
+                            rev_user = review.get("user", {}).get("name", "Unknown")
+                            rev_date = review.get("time_created", "")
+
+                            # Only capture 1-3 star reviews
+                            if rev_rating > 3:
+                                continue
+
+                            if len(rev_text) < 20:
+                                continue
+
+                            # Check for negative keywords (higher relevance)
+                            text_lower = rev_text.lower()
+                            has_negative = any(kw in text_lower for kw in NEGATIVE_KEYWORDS)
+
+                            lead = {
+                                "lead_id": str(uuid.uuid4()),
+                                "fonte": "yelp",
+                                "grupo_ou_pagina": f"Yelp: {biz_name}",
+                                "texto_original": f"[{rev_rating}★ Review] {rev_text[:400]}",
+                                "nome_autor": rev_user.split()[0] if rev_user else "Unknown",
+                                "post_url": review.get("url", biz.get("url", "")),
+                                "data_post": rev_date or datetime.now().isoformat(),
+                                "tipo": "review_negativa_concorrente",
+                                "rating": rev_rating,
+                                "score": 9 if has_negative else 6,
+                                "timestamp_captura": datetime.now().isoformat(),
+                            }
+                            leads.append(lead)
+
+                    except Exception as e:
+                        print(f"  ⚠️ Yelp reviews {biz_name}: {type(e).__name__}: {e}")
+
+                print(f"  ✅ Yelp '{term}': {len(businesses)} businesses, {len([l for l in leads if term.split()[0] in l.get('grupo_ou_pagina', '').lower()])} reviews")
 
             except Exception as e:
-                print(f"❌ Erro Yelp {competitor['name']}: {e}")
+                print(f"  ❌ Erro Yelp '{term}': {type(e).__name__}: {e}")
 
+    print(f"  📦 Yelp total: {len(leads)} reviews negativas coletadas")
     return leads
