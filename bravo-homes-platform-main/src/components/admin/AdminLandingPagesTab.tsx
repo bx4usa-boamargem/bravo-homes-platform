@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../lib/i18n';
 import { useAdminLandingPages, useDeleteLandingPage } from '../../hooks/useAdminQueries';
 import { useToast } from './Toast';
 import { Button } from '../ui/Button';
@@ -10,17 +11,18 @@ interface AdminLandingPagesTabProps {
 }
 
 export default function AdminLandingPagesTab({ setIsLPOpen, showConfirm }: AdminLandingPagesTabProps) {
+  const { t } = useLanguage();
   const { data: landingPages = [], isLoading } = useAdminLandingPages();
   const deleteLPMutation = useDeleteLandingPage();
   const { showToast } = useToast();
 
   const toggleLPStatus = (lp: any) => {
     // Left as a placeholder, the original file had this logic inline but incomplete
-    showToast('Ação atualizar status será vinculada ao React Query');
+    showToast(t('actionUpdateStatus'));
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-400">Carregando Landing Pages...</div>;
+    return <div className="p-8 text-center text-gray-400">{t('loadingLP')}</div>;
   }
 
   return (
@@ -34,17 +36,17 @@ export default function AdminLandingPagesTab({ setIsLPOpen, showConfirm }: Admin
           <table className="tbl">
             <thead>
               <tr>
-                <th style={{ width: '18%' }}>Página (Cidade)</th>
-                <th style={{ width: '12%' }}>Status</th>
-                <th style={{ width: '14%' }}>Visitantes</th>
-                <th style={{ width: '14%' }}>Leads Gerados</th>
-                <th style={{ width: '14%' }}>Conversão</th>
-                <th style={{ width: '28%', textAlign: 'center' }}>Ação</th>
+                <th style={{ width: '18%' }}>{t('pageCityCol')}</th>
+                <th style={{ width: '12%' }}>{t('status')}</th>
+                <th style={{ width: '14%' }}>{t('visitorsCol')}</th>
+                <th style={{ width: '14%' }}>{t('leadsGeneratedCol')}</th>
+                <th style={{ width: '14%' }}>{t('conversionCol')}</th>
+                <th style={{ width: '28%', textAlign: 'center' }}>{t('actionLabel')}</th>
               </tr>
             </thead>
             <tbody>
               {landingPages.length === 0 && (
-                <tr><td colSpan={6} className="u-empty-state">Nenhuma LP encontrada.</td></tr>
+                <tr><td colSpan={6} className="u-empty-state">{t('noLpFound')}</td></tr>
               )}
               {landingPages.map(lp => {
                 const convRate = (lp.visitors ?? 0) > 0 ? Math.round(((lp.leads_count ?? 0) / (lp.visitors ?? 1)) * 100) : 0;
@@ -74,7 +76,7 @@ export default function AdminLandingPagesTab({ setIsLPOpen, showConfirm }: Admin
                           className="px-3.5 py-1.5 text-[.75rem]" 
                           onClick={() => {
                             navigator.clipboard.writeText(`https://bravohomes.com/lp/${(lp.city || '').toLowerCase().replace(/\s+/g, '-')}`);
-                            showToast('Link da LP copiado para a área de transferência!');
+                            showToast(t('copyLPLink'));
                           }}
                         >
                           Link
@@ -82,7 +84,7 @@ export default function AdminLandingPagesTab({ setIsLPOpen, showConfirm }: Admin
                         <Button 
                           variant="ghost" 
                           className="px-3.5 py-1.5 text-[.75rem]" 
-                          onClick={() => showToast('Construtor visual de LP em breve!')}
+                          onClick={() => showToast(t('lpBuilderSoon'))}
                         >
                           Editar
                         </Button>
@@ -90,12 +92,12 @@ export default function AdminLandingPagesTab({ setIsLPOpen, showConfirm }: Admin
                           variant="ghost" 
                           className="px-3.5 py-1.5 text-[0.95rem] text-danger border-transparent" 
                           onClick={() => {
-                            showConfirm(`Deseja excluir a LP "${lp.name}"?`, async () => {
+                            showConfirm(`${t('deleteLpConfirm')} "${lp.name}"?`, async () => {
                               try {
                                 await deleteLPMutation.mutateAsync(lp.id);
-                                showToast('Landing Page excluída com sucesso!');
+                                showToast(t('lpDeletedSuccess'));
                               } catch (err: any) {
-                                showToast('Erro: ' + err.message);
+                                showToast(t('errorMsg') + err.message);
                               }
                             });
                           }}

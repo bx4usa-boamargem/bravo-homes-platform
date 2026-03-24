@@ -2,6 +2,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { useLanguage } from '../../lib/i18n';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';
 import '../../styles/fullcalendar.css';
@@ -19,19 +20,20 @@ export default function CalendarTab({
   handleGoogleSync, setEventForm, setIsEventModalOpen,
   mapEventsForCalendar, handleEventDrop, handleEventClick,
 }: CalendarTabProps) {
+  const { t, lang } = useLanguage();
   return (
     <div className="page active" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="u-section-header">
-        <div className="u-syne-title">Calendário de Vistorias e Agendamentos</div>
+        <div className="u-syne-title">{t('calendarTitle')}</div>
         <div className="u-flex-gap-8">
-          <Button variant="ghost" onClick={handleGoogleSync} aria-label="Sincronizar com Google Calendar" style={{display:'flex', alignItems:'center', gap:'6px'}}>
+          <Button variant="ghost" onClick={handleGoogleSync} aria-label={t('syncGoogleAria') as string} style={{display:'flex', alignItems:'center', gap:'6px'}}>
             <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" style={{width:'14px'}} alt="Google Calendar" />
-            Sincronizar Google
+            {t('syncGoogleBtn')}
           </Button>
           <Button variant="gold" aria-label="Criar novo evento" onClick={() => {
              setEventForm({ lead_id: '', date: '', time: '00:00', title: '' });
              setIsEventModalOpen(true);
-          }}>+ Novo Evento</Button>
+          }}>{t('newEventBtn')}</Button>
         </div>
       </div>
       <Card className="flex-1 p-[16px] bg-bg-2">
@@ -43,8 +45,8 @@ export default function CalendarTab({
               center: 'title',
               right: 'dayGridMonth,timeGridWeek,timeGridDay'
             }}
-            locale="pt-br"
-            buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
+            locale={lang.toLowerCase()}
+            buttonText={{ today: t('calToday') as string, month: t('calMonth') as string, week: t('calWeek') as string, day: t('calDay') as string }}
             events={mapEventsForCalendar()}
             editable={true}
             droppable={true}
@@ -74,7 +76,9 @@ export default function CalendarTab({
               setEventForm({ lead_id: '', date: clickedDate, time: clickedTime, title: '' });
               setIsEventModalOpen(true);
             }}
-            height="100%"
+            height="auto"
+            contentHeight="auto"
+            expandRows={true}
             slotMinTime="07:00:00"
             slotMaxTime="24:00:00"
             allDaySlot={true}

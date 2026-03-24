@@ -541,6 +541,15 @@ export default function AdminDashboard() {
          setIsGoogleLinked(true);
          fetchGoogleEvents(storedToken);
       }
+
+      // Restore session tokens if they just returned from Google Auth
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.provider_token) {
+           localStorage.setItem('google_provider_token', session.provider_token);
+           setIsGoogleLinked(true);
+           fetchGoogleEvents(session.provider_token);
+        }
+      });
     }
     fetchData();
 
@@ -593,8 +602,17 @@ export default function AdminDashboard() {
       })
       .subscribe();
 
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.provider_token) {
+           localStorage.setItem('google_provider_token', session.provider_token);
+           setIsGoogleLinked(true);
+           fetchGoogleEvents(session.provider_token);
+        }
+    });
+
     return () => {
       supabase.removeChannel(channel);
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
@@ -1300,7 +1318,7 @@ export default function AdminDashboard() {
           <div className={navItemClass('adminchat')} onClick={() => navTo('adminchat')}><span className="ni-icon">💬</span>{t('chat')}</div>
           <div className={navItemClass('social')} onClick={() => navTo('social')}><span className="ni-icon">📱</span>Social Media</div>
           
-          <div className="sb-sec">SYSTEM</div>
+          <div className="sb-sec">{t('system')}</div>
           <div className={navItemClass('settings')} onClick={() => navTo('settings')}><span className="ni-icon">⚙</span>{t('settings')}</div>
         </div>
         <div className="sb-footer">
@@ -1311,22 +1329,30 @@ export default function AdminDashboard() {
       <div className={`sb-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"></div>
 
       <div className="main">
-        <div className="topbar">
-          <button className="sb-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Abrir/fechar menu lateral">☰</button>
-          <div className="topbar-title">{{'lp':t('topbarLandingPages'),'allleads':t('topbarAllLeads'),'adminchat':t('topbarChat'),'projects':t('topbarProjects'),'pipeline':t('topbarPipeline'),'calendar':t('topbarCalendar'),'partners':t('topbarPartners'),'clients':t('topbarClients'),'finances':t('topbarFinances'),'settings':t('topbarSettings'),'dashboard':t('topbarDashboard')}[activeTab] || activeTab.toUpperCase()}</div>
-          <div className="topbar-actions"></div>
-          <button className="notif-btn" onClick={() => setIsNotifOpen(!isNotifOpen)} aria-label="Abrir notificações" style={{position:'relative'}}>
-            🔔
-            {unreadCount > 0 && <span style={{position:'absolute',top:'-2px',right:'-2px',background:'var(--red)',color:'#fff',fontSize:'0.55rem',fontWeight:700,borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center'}}>{unreadCount}</span>}
-          </button>
-          <button className="theme-btn" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}>{theme === 'dark' ? '🌙' : '☀️'}</button>
+        <div className="topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: '60px', borderBottom: '1px solid var(--b)', background: 'var(--bg2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+            <button className="sb-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Abrir/fechar menu lateral" style={{ background: 'transparent', border: 'none', color: 'var(--text)', fontSize: '1.4rem', cursor: 'pointer', display: 'none' }}>☰</button>
+            <div className="topbar-title" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>
+              {{'lp':t('topbarLandingPages'),'allleads':t('topbarAllLeads'),'adminchat':t('topbarChat'),'projects':t('topbarProjects'),'pipeline':t('topbarPipeline'),'calendar':t('topbarCalendar'),'partners':t('topbarPartners'),'clients':t('topbarClients'),'finances':t('topbarFinances'),'settings':t('topbarSettings'),'dashboard':t('topbarDashboard')}[activeTab] || activeTab.toUpperCase()}
+            </div>
+          </div>
+          
+          <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button className="notif-btn" onClick={() => setIsNotifOpen(!isNotifOpen)} aria-label="Abrir notificações" style={{ position: 'relative', width: '40px', height: '40px', borderRadius: '10px', background: 'var(--bg3)', border: '1px solid var(--b)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+              <span style={{ fontSize: '1.2rem' }}>🔔</span>
+              {unreadCount > 0 && <span style={{position:'absolute',top:'-4px',right:'-4px',background:'var(--red)',color:'#fff',fontSize:'0.6rem',fontWeight:700,borderRadius:'50%',width:18,height:18,display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid var(--bg2)'}}>{unreadCount}</span>}
+            </button>
+            <button onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--b)] hover:opacity-80 transition-all text-xl" style={{background: 'var(--bg3)', outline: 'none'}}>
+              {theme === 'dark' ? '🌙' : '☀️'}
+            </button>
+          </div>
         </div>
         
         {isNotifOpen && (
           <div className="notif-panel open" style={{ right: 30 }}>
-            <div className="nphead">Notificações {unreadCount > 0 && <span style={{background:'var(--red)',color:'#fff',fontSize:'0.55rem',borderRadius:10,padding:'1px 6px',marginLeft:6}}>{unreadCount}</span>} <span className="npclear" style={{cursor: 'pointer'}} onClick={() => setNotifications(prev => prev.map(n => ({...n, read: true})))}>Marcar todas lidas</span></div>
+            <div className="nphead">{t('notificationsTitle')} {unreadCount > 0 && <span style={{background:'var(--red)',color:'#fff',fontSize:'0.55rem',borderRadius:10,padding:'1px 6px',marginLeft:6}}>{unreadCount}</span>} <span className="npclear" style={{cursor: 'pointer'}} onClick={() => setNotifications(prev => prev.map(n => ({...n, read: true})))}>{t('markAllRead')}</span></div>
             <div style={{maxHeight:'350px',overflowY:'auto'}}>
-              {notifications.length === 0 && <div className="empty-state" style={{padding: '20px'}}>Sem notificações</div>}
+              {notifications.length === 0 && <div className="empty-state" style={{padding: '20px'}}>{t('noNotifications')}</div>}
               {notifications.slice(0, 20).map(n => (
                 <div key={n.id} onClick={() => setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read: true} : x))} style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',cursor:'pointer',background: n.read ? 'transparent' : 'rgba(201,148,58,0.08)',transition:'all .2s'}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
@@ -1335,7 +1361,7 @@ export default function AdminDashboard() {
                   </div>
                   <div style={{fontSize:'0.8rem',fontWeight: n.read ? 400 : 700,color:'var(--text)'}}>{n.title}</div>
                   <div style={{fontSize:'0.7rem',color:'var(--t3)',marginTop:2}}>{n.body}</div>
-                  <div style={{fontSize:'0.6rem',color:'var(--t3)',marginTop:4,fontFamily:"'DM Mono',monospace"}}>{n.time.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+                  <div style={{fontSize:'0.6rem',color:'var(--t3)',marginTop:4,fontFamily:"'DM Mono',monospace"}}>{n.time.toLocaleTimeString(lang,{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
               ))}
             </div>

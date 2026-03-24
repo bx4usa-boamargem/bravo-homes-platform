@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useLanguage } from '../../lib/i18n';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
@@ -36,18 +37,19 @@ export default function ChatPanel({
   isRecording, recordingTime, formatTime, cancelRecording, stopRecordingAndSend,
   startRecording, isUploading, handleFileSelect, fileInputRef, supabase,
 }: ChatPanelProps) {
+  const { t } = useLanguage();
   return (
     <div className="page active" style={{display: 'flex', gap: '16px', height: 'calc(100vh - 80px)'}}>
       <Card className="flex flex-col h-full p-0 flex-shrink-0 w-[300px]">
-         <div style={{padding: '16px', borderBottom: '1px solid var(--b)', fontWeight: 700}}>Parceiros (Chat)</div>
+         <div style={{padding: '16px', borderBottom: '1px solid var(--b)', fontWeight: 700}}>{t('chatPartnersTitle')}</div>
          <div style={{flex: 1, overflowY: 'auto'}}>
            {chatPartners.map(p => (
              <div key={p.id} onClick={() => setSelectedChatUser(p)} style={{padding: '12px 16px', borderBottom: '1px solid var(--b)', cursor: 'pointer', background: selectedChatUser?.id === p.id ? 'var(--bg3)' : 'transparent', display: 'flex', alignItems: 'center', gap: '10px'}}>
                <div className="av" style={{background: 'var(--gold)', color: '#000', width: '32px', height: '32px', fontSize: '0.8rem', fontWeight: 'bold'}}>{(p.full_name || p.name || 'PA').substring(0,2).toUpperCase()}</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.full_name || p.name || 'Parceiro'}</div>
+                  <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.full_name || p.name || t('partnerFallback')}</div>
                 </div>
-                <button title="Apagar conversa" onClick={(e) => { e.stopPropagation(); showConfirm(`Deseja apagar toda a conversa com "${p.full_name || p.name || 'este parceiro'}"? Esta ação não pode ser desfeita.`, async () => {
+                <button title="Apagar conversa" onClick={(e) => { e.stopPropagation(); showConfirm(`${t('deleteChatConfirm')} "${p.full_name || p.name || t('partnerFallback')}"? ${t('chatDeleteWarn')}`, async () => {
                   await supabase.from('messages').delete().or(
                     `and(sender_id.eq.${user?.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${user?.id})`
                   );
@@ -60,11 +62,11 @@ export default function ChatPanel({
                       (m.sender_id === p.id && m.receiver_id === user?.id))
                   ));
                   if (selectedChatUser?.id === p.id) setSelectedChatUser(null);
-                  showToast('Conversa apagada com sucesso!');
+                  showToast(t('chatDeletedSuccess'));
                 }); }} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:'0.85rem',padding:'4px',color:'var(--t3)',opacity:0.5,transition:'opacity .15s'}} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}>🗑️</button>
              </div>
            ))}
-           {chatPartners.length === 0 && <div style={{padding: '20px', color: 'var(--t3)', fontSize: '0.85rem', textAlign: 'center'}}>Nenhuma conversa ativa.</div>}
+           {chatPartners.length === 0 && <div style={{padding: '20px', color: 'var(--t3)', fontSize: '0.85rem', textAlign: 'center'}}>{t('noActiveChats')}</div>}
          </div>
       </Card>
       <Card className="flex flex-col flex-1 h-full p-0 min-w-0">
@@ -73,13 +75,13 @@ export default function ChatPanel({
              <div style={{padding: '16px', borderBottom: '1px solid var(--b)', display: 'flex', alignItems: 'center', gap: '10px'}}>
                <div className="av" style={{background: 'var(--gold)', color: '#000', width: '40px', height: '40px'}}>{(selectedChatUser.full_name || selectedChatUser.name || 'PA').substring(0,2).toUpperCase()}</div>
                <div>
-                 <div style={{fontWeight: 700}}>{selectedChatUser.full_name || selectedChatUser.name || 'Parceiro'}</div>
-                 <div style={{fontSize: '0.75rem', color: 'var(--t2)'}}>{selectedChatUser.specialty || 'Parceiro'}</div>
+                 <div style={{fontWeight: 700}}>{selectedChatUser.full_name || selectedChatUser.name || t('partnerFallback')}</div>
+                 <div style={{fontSize: '0.75rem', color: 'var(--t2)'}}>{selectedChatUser.specialty || t('partnerFallback')}</div>
                </div>
              </div>
              <div style={{flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--bg)'}}>
                 {messages.length === 0 ? (
-                   <div style={{margin: 'auto', color: 'var(--t3)', fontStyle: 'italic', fontSize: '0.85rem'}}>Nenhuma mensagem ainda. Envie a primeira!</div>
+                   <div style={{margin: 'auto', color: 'var(--t3)', fontStyle: 'italic', fontSize: '0.85rem'}}>{t('noMessagesYet')}</div>
                 ) : (
                    messages.map(msg => {
                       const isMe = msg.sender_id === user?.id;
@@ -98,22 +100,22 @@ export default function ChatPanel({
                   <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: '15px', color: 'var(--red)', fontWeight: 600}}>
                     <div style={{fontSize: '1.2rem', animation: 'pulsing 1s infinite'}}>🔴</div>
                     <style dangerouslySetInnerHTML={{__html: `@keyframes pulsing { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }`}} />
-                    <div>Gravando: {formatTime(recordingTime)}</div>
+                    <div>{t('recordingAudio')}: {formatTime(recordingTime)}</div>
                     <div className="flex-1"></div>
-                    <Button variant="ghost" className="text-danger border-transparent font-medium" onClick={cancelRecording}>Cancelar</Button>
-                    <Button variant="gold" onClick={stopRecordingAndSend}>Enviar Áudio</Button>
+                    <Button variant="ghost" className="text-danger border-transparent font-medium" onClick={cancelRecording}>{t('cancelBtn')}</Button>
+                    <Button variant="gold" onClick={stopRecordingAndSend}>{t('sendAudioBtn')}</Button>
                   </div>
                 ) : (
                   <form onSubmit={handleSendMessage} style={{flex: 1, display: 'flex', gap: '10px', minWidth: 0}}>
                     <input type="file" ref={fileInputRef} style={{display: 'none'}} onChange={handleFileSelect} />
-                    <Button type="button" variant="ghost" className="px-3 text-[1.2rem] border-transparent" onClick={() => fileInputRef.current?.click()} title="Anexar arquivo" disabled={isUploading}>📎</Button>
+                    <Button type="button" variant="ghost" className="px-3 text-[1.2rem] border-transparent" onClick={() => fileInputRef.current?.click()} title={t('attachFileTitle') as string} disabled={isUploading}>📎</Button>
                     
-                    <input type="text" className="f-inp" placeholder={isUploading ? "Enviando arquivo..." : "Digite uma mensagem..."} value={newMessage} onChange={e => setNewMessage(e.target.value)} disabled={isUploading} style={{flex: 1, margin: 0}} />
+                    <input type="text" className="f-inp" placeholder={isUploading ? t('uploadingFileMsg') as string : t('typeMessagePlaceholder') as string} value={newMessage} onChange={e => setNewMessage(e.target.value)} disabled={isUploading} style={{flex: 1, margin: 0}} />
                     
                     {newMessage.trim() === '' ? (
-                      <Button type="button" variant="ghost" className="px-3 text-[1.2rem] text-gold border-transparent" disabled={isUploading} onClick={startRecording} title="Gravar Áudio">🎤</Button>
+                      <Button type="button" variant="ghost" className="px-3 text-[1.2rem] text-gold border-transparent" disabled={isUploading} onClick={startRecording} title={t('recordAudioTitle') as string}>🎤</Button>
                     ) : (
-                      <Button type="submit" variant="gold" className="px-5" disabled={isUploading}>Enviar</Button>
+                      <Button type="submit" variant="gold" className="px-5" disabled={isUploading}>{t('sendBtn')}</Button>
                     )}
                   </form>
                 )}
@@ -122,7 +124,7 @@ export default function ChatPanel({
          ) : (
            <div style={{margin: 'auto', color: 'var(--t3)', textAlign: 'center'}}>
               <div style={{fontSize: '3rem', marginBottom: '10px'}}>💬</div>
-              <div>Selecione um parceiro ao lado<br/>para iniciar o chat.</div>
+              <div>{t('selectPartnerPrompt1')}<br/>{t('selectPartnerPrompt2')}</div>
            </div>
          )}
       </Card>

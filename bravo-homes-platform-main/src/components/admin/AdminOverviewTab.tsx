@@ -1,4 +1,4 @@
-import React from 'react';
+import { useLanguage } from '../../lib/i18n';
 import { useAdminProjects, useAdminLeads } from '../../hooks/useAdminQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Bar } from 'react-chartjs-2';
@@ -26,6 +26,7 @@ interface AdminOverviewTabProps {
 }
 
 export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps) {
+  const { t, lang } = useLanguage();
   const { data: projects = [], isLoading: loadingProjects } = useAdminProjects();
   const { data: leads = [], isLoading: loadingLeads } = useAdminLeads();
 
@@ -60,10 +61,11 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
       }
     }
   });
-  const chartLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const chartLabelsStr = t('monthsShort');
+  const chartLabels = chartLabelsStr.split(',');
 
   const leadsPerSource = leads.reduce((acc, l) => {
-    const source = (l.source && l.source.trim() !== '') ? l.source : 'Desconhecido';
+    const source = (l.source && l.source.trim() !== '') ? l.source : t('unknownLabel');
     acc[source] = (acc[source] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -75,7 +77,7 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
     .map(([source, count], idx) => {
       const color = sourceColors[idx % sourceColors.length];
       const percentage = Math.round((count / totalLeadsWithSource) * 100);
-      const niceSourceName = source === 'manual-admin' ? 'Manual' : source;
+      const niceSourceName = source === 'manual-admin' ? t('manualLabel') : source;
       return (
         <div key={source} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', textTransform: 'capitalize' }}>
@@ -92,36 +94,36 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
     <div className="page active">
       <div className="kpi-grid">
         <div className="kpi gold">
-          <div className="kl">Receita Total (Obras)</div>
+          <div className="kl">{t('totalRevenueKpi')}</div>
           <div className="kv">${totalRevenue.toLocaleString()}</div>
-          <div className="kc">Dos contratos assinados</div>
+          <div className="kc">{t('fromSignedContracts')}</div>
         </div>
         <div className="kpi blue">
-          <div className="kl">Leads Ativos</div>
+          <div className="kl">{t('activeLeadsKpi')}</div>
           <div className="kv">{activeLeadsCount}</div>
-          <div className="kc">Total no painel</div>
+          <div className="kc">{t('totalInPanel')}</div>
         </div>
         <div className="kpi green">
-          <div className="kl">Obras em andamento</div>
+          <div className="kl">{t('ongoingProjects')}</div>
           <div className="kv">{activeProjectsCount}</div>
-          <div className="kc">Em execução</div>
+          <div className="kc">{t('inExecution')}</div>
         </div>
         <div className="kpi red">
-          <div className="kl">Visitas (Agendamentos)</div>
+          <div className="kl">{t('visitsAppointments')}</div>
           <div className="kv">{schedulingLeadsCount}</div>
-          <div className="kc">{schedulingLeadsCount > 0 ? 'Leads agendados' : 'Nenhuma no momento'}</div>
+          <div className="kc">{schedulingLeadsCount > 0 ? t('scheduledLeads') : t('noneAtMoment')}</div>
         </div>
       </div>
       
       <div className="g2">
         <Card>
-          <CardHeader><CardTitle>Receita Mensal {currentYear}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('monthlyRevenueYear')} {currentYear}</CardTitle></CardHeader>
           <CardContent style={{ height: '160px', padding: '10px 18px' }}>
             <Bar 
               data={{
                 labels: chartLabels,
                 datasets: [{
-                  label: 'Receita ($)',
+                  label: t('value') || 'Receita ($)',
                   data: monthlyRevenue,
                   backgroundColor: '#C9943A',
                   borderRadius: 4,
@@ -140,10 +142,10 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Leads por Fonte</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('leadsBySource')}</CardTitle></CardHeader>
           <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {sourceElements.length > 0 ? sourceElements : (
-              <div style={{ fontSize: '0.8rem', color: 'var(--t3)' }}>Nenhum lead com fonte rastreada.</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--t3)' }}>{t('noLeadsWithSource')}</div>
             )}
           </CardContent>
         </Card>
@@ -152,21 +154,21 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
       <div className="g2">
         <Card>
           <CardHeader>
-            <CardTitle>Projetos em Andamento</CardTitle>
-            <span className="ca" onClick={() => setActiveTab('projects')} style={{cursor: 'pointer'}}>Ver todos →</span>
+            <CardTitle>{t('projectsInProgress')}</CardTitle>
+            <span className="ca" onClick={() => setActiveTab('projects')} style={{cursor: 'pointer'}}>{t('viewAll')} →</span>
           </CardHeader>
           <CardContent style={{ padding: 0 }}>
             <table className="tbl">
-              <thead><tr><th>Cliente</th><th>Progresso</th><th>Entrega</th></tr></thead>
+              <thead><tr><th>{t('clientLabel')}</th><th>{t('progressLabel')}</th><th>{t('deliveryDate')}</th></tr></thead>
               <tbody>
                 {projects.length === 0 && (
-                  <tr><td colSpan={3} className="u-empty-state">Nenhum projeto encontrado.</td></tr>
+                  <tr><td colSpan={3} className="u-empty-state">{t('noProjectsFound')}</td></tr>
                 )}
                 {projects.slice(0, 3).map((p: any) => (
                   <tr key={p.id} className="u-cursor-pointer" onClick={() => setActiveTab('projects')}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{p.name || 'Projeto sem nome'}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--t2)' }}>{p.service_type || 'Serviço'} · ${p.contract_value || '0'}</div>
+                      <div style={{ fontWeight: 600 }}>{p.name || t('projectNoName')}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--t2)' }}>{p.service_type || t('serviceLabel')} · ${p.contract_value || '0'}</div>
                     </td>
                     <td style={{ width: '90px' }}>
                       <div className="prog-bar">
@@ -187,7 +189,7 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
         </Card>
         
         <Card>
-          <CardHeader><CardTitle>Atividade Recente</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('recentActivity')}</CardTitle></CardHeader>
           <CardContent style={{ padding: '0 18px' }}>
             {leads.slice(0, 3).map((l: any, i: number) => {
               const created = new Date(l.created_at);
@@ -198,24 +200,24 @@ export default function AdminOverviewTab({ setActiveTab }: AdminOverviewTabProps
               const isToday = created.toDateString() === now.toDateString();
               const isYesterday = created.toDateString() === new Date(now.getTime() - 86400000).toDateString();
               let timeLabel = '';
-              if (diffMin < 1) timeLabel = 'Agora';
-              else if (diffMin < 60) timeLabel = `${diffMin} min`;
-              else if (diffH < 24 && isToday) timeLabel = `${diffH}h`;
-              else if (isYesterday) timeLabel = `Ontem ${created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-              else timeLabel = created.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              if (diffMin < 1) timeLabel = t('justNowLabel');
+              else if (diffMin < 60) timeLabel = `${diffMin} ${t('minsAgoLabel')}`;
+              else if (diffH < 24 && isToday) timeLabel = `${diffH}${t('hoursAgoLabel')}`;
+              else if (isYesterday) timeLabel = `${t('yesterdayLabel')} ${created.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}`;
+              else timeLabel = created.toLocaleDateString(lang, { day: '2-digit', month: '2-digit' }) + ' ' + created.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
               
               return (
                 <div className="log-item" key={l.id || i}>
                   <div className="log-date">{timeLabel}</div>
                   <div className="log-text">
-                    Novo lead • <strong>{l.clients?.name || l.name || 'Desconhecido'}</strong> via {l.source || 'Manual'} — {l.service_type} {l.estimated_value ? `$${l.estimated_value}` : ''}
+                    {t('newLeadText')} • <strong>{l.clients?.name || l.name || t('unknownLabel')}</strong> {t('viaLabel')} {l.source || t('manualLabel')} — {l.service_type} {l.estimated_value ? `$${l.estimated_value}` : ''}
                   </div>
                 </div>
               );
             })}
             {leads.length === 0 && (
               <>
-                <div className="log-item"><div className="log-date">AGORA</div><div className="log-text">Aguardando atividades</div></div>
+                <div className="log-item"><div className="log-date">{t('nowLabel')}</div><div className="log-text">{t('waitingForActivities')}</div></div>
               </>
             )}
           </CardContent>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../lib/i18n';
 import { useAdminProjects, useDeleteProject } from '../../hooks/useAdminQueries';
 import { useToast } from './Toast';
 import { Button } from '../ui/Button';
@@ -19,41 +20,42 @@ export default function AdminProjectsTab({
   setIsNewProjectOpen,
   showConfirm 
 }: AdminProjectsTabProps) {
+  const { t } = useLanguage();
   const { data: projects = [], isLoading } = useAdminProjects();
   const deleteProjectMutation = useDeleteProject();
   const { showToast } = useToast();
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-400">Carregando projetos...</div>;
+    return <div className="p-8 text-center text-gray-400">{t('loadingProjects')}</div>;
   }
 
   return (
     <div className="page active">
       <div className="u-section-header">
-        <div className="u-syne-title">Projetos Ativos — Visão Admin</div>
-        <Button variant="gold" onClick={handleCreateProject}>Novo Projeto</Button>
+        <div className="u-syne-title">{t('activeProjectsAdmin')}</div>
+        <Button variant="gold" onClick={handleCreateProject}>{t('newProjectBtn')}</Button>
       </div>
       <Card>
         <CardContent className="p-0 overflow-x-auto">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Cliente</th>
-                <th>Serviço</th>
-                <th>Valor</th>
-                <th>Progresso</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'center' }}>Ação</th>
+                <th>{t('clientLabel')}</th>
+                <th>{t('serviceLabel')}</th>
+                <th>{t('value')}</th>
+                <th>{t('progressLabel')}</th>
+                <th>{t('status')}</th>
+                <th style={{ textAlign: 'center' }}>{t('actionLabel')}</th>
               </tr>
             </thead>
             <tbody>
               {projects.length === 0 && (
-                <tr><td colSpan={6} className="u-empty-state">Nenhum projeto em andamento.</td></tr>
+                <tr><td colSpan={6} className="u-empty-state">{t('noOngoingProjects')}</td></tr>
               )}
               {projects.map((p: any) => (
                 <tr key={p.id}>
-                  <td><b>{p.name || 'Projeto'}</b></td>
-                  <td>{p.service_type || 'Serviço'}</td>
+                  <td><b>{p.name || t('projectPlaceholder')}</b></td>
+                  <td>{p.service_type || t('serviceLabel')}</td>
                   <td className="u-text-gold">${p.contract_value ? Number(p.contract_value).toLocaleString() : '0'}</td>
                   <td>
                     <div className="prog-bar" style={{ width: '80px' }}>
@@ -63,7 +65,7 @@ export default function AdminProjectsTab({
                       {p.progress || 0}%
                     </div>
                   </td>
-                  <td><span className={`status-b ${p.status === 'active' ? 'sb-active' : ''}`}>{p.status || 'ND'}</span></td>
+                  <td><span className={`status-b ${p.status === 'active' ? 'sb-active' : ''}`}>{p.status || t('statusNd')}</span></td>
                   <td>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
                       <Button 
@@ -82,19 +84,19 @@ export default function AdminProjectsTab({
                           setIsNewProjectOpen(true);
                         }}
                       >
-                        ✏️ Editar
+                        {t('editBtn')}
                       </Button>
                       
                       <Button 
                         variant="ghost" 
                         className="px-2 py-1 text-[.7rem] text-danger border-transparent" 
                         onClick={() => {
-                          showConfirm(`Deseja excluir o projeto "${p.name}"?`, async () => {
+                          showConfirm(`${t('deleteProjectConfirm')} "${p.name}"?`, async () => {
                             try {
                               await deleteProjectMutation.mutateAsync(p.id);
-                              showToast('Projeto excluído com sucesso!');
+                              showToast(t('projectDeletedSuccess'));
                             } catch (err: any) {
-                              showToast('Erro: ' + err.message);
+                              showToast(t('errorMsg') + err.message);
                             }
                           });
                         }}

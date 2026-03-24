@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useLanguage } from '../../lib/i18n';
 import { useAdminLeads, useUpdateLeadStatus } from '../../hooks/useAdminQueries';
 import { Button } from '../ui/Button';
 
@@ -8,6 +9,7 @@ interface AdminPipelineTabProps {
 }
 
 export default function AdminPipelineTab({ setIsNewLeadOpen, setSelectedLead }: AdminPipelineTabProps) {
+  const { t } = useLanguage();
   const { data: leads = [], isLoading } = useAdminLeads();
   const updateStatus = useUpdateLeadStatus();
 
@@ -32,7 +34,7 @@ export default function AdminPipelineTab({ setIsNewLeadOpen, setSelectedLead }: 
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-400">Carregando pipeline...</div>;
+    return <div className="p-8 text-center text-gray-400">{t('loadingPipeline')}</div>;
   }
 
   const activeLeadsCount = leads.length;
@@ -42,21 +44,21 @@ export default function AdminPipelineTab({ setIsNewLeadOpen, setSelectedLead }: 
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <div style={{ fontSize: '0.62rem', color: 'var(--t3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '3px' }}>
-            {activeLeadsCount} leads ativos
+            {activeLeadsCount} {t('activeLeadsCount')}
           </div>
-          <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>Pipeline de Leads</div>
+          <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>{t('pipelineTitle')}</div>
         </div>
-        <Button variant="gold" onClick={() => setIsNewLeadOpen(true)}>+ Novo Lead</Button>
+        <Button variant="gold" onClick={() => setIsNewLeadOpen(true)}>{t('newLeadBtn')}</Button>
       </div>
       
       <div className="kanban">
         {['new', 'contacted', 'scheduling', 'proposal', 'closed'].map(statusGroup => {
           const statusTitles: Record<string, string> = {
-            'new': 'Novos',
-            'contacted': 'Em Contato',
-            'scheduling': 'Agendamento / Visita',
-            'proposal': 'Proposta',
-            'closed': 'Fechados ✓'
+            'new': t('statusNew'),
+            'contacted': t('statusContacted'),
+            'scheduling': t('statusScheduling'),
+            'proposal': t('statusProposal'),
+            'closed': t('statusClosed')
           };
           const colLeads = leads.filter(l => l.status === statusGroup);
           
@@ -82,18 +84,18 @@ export default function AdminPipelineTab({ setIsNewLeadOpen, setSelectedLead }: 
                   onDragStart={(e) => handleDragStart(e, l.id)}
                   onClick={() => setSelectedLead(l)}
                 >
-                  <div className="lc-name">{l.clients?.name || l.name || 'Lead s/ Nome'}</div>
-                  <div className="lc-srv">{l.service_type || 'Serviço G'} · {l.city || 'Local ND'}</div>
+                  <div className="lc-name">{l.clients?.name || l.name || t('leadNoName')}</div>
+                  <div className="lc-srv">{l.service_type || t('servicePlaceholder')} · {l.city || t('locationPlacholder')}</div>
                   <div className="lc-foot">
-                    <span className="lc-val">{l.estimated_value ? `$${Number(l.estimated_value).toLocaleString()}` : 'Valor tbd'}</span>
-                    {l.urgency === 'hot' && <span className="urg hot" style={{ background: 'rgba(231,76,60,0.15)', color: 'var(--red)' }}>QUENTE</span>}
-                    {l.urgency === 'warm' && <span className="urg warm" style={{ background: 'rgba(230,126,34,0.15)', color: 'var(--orange)' }}>MORNO</span>}
-                    {l.urgency === 'cool' && <span className="urg cool" style={{ background: 'rgba(52,152,219,0.15)', color: 'var(--blue)' }}>FRIO</span>}
+                    <span className="lc-val">{l.estimated_value ? `$${Number(l.estimated_value).toLocaleString()}` : t('valueTbd')}</span>
+                    {l.urgency === 'hot' && <span className="urg hot" style={{ background: 'rgba(231,76,60,0.15)', color: 'var(--red)' }}>{t('urgencyHot')}</span>}
+                    {l.urgency === 'warm' && <span className="urg warm" style={{ background: 'rgba(230,126,34,0.15)', color: 'var(--orange)' }}>{t('urgencyWarm')}</span>}
+                    {l.urgency === 'cool' && <span className="urg cool" style={{ background: 'rgba(52,152,219,0.15)', color: 'var(--blue)' }}>{t('urgencyCool')}</span>}
                   </div>
                 </div>
               ))}
               
-              {colLeads.length === 0 && <div className="empty-state" style={{ fontSize: '0.8rem', padding: '10px' }}>Vazio</div>}
+              {colLeads.length === 0 && <div className="empty-state" style={{ fontSize: '0.8rem', padding: '10px' }}>{t('emptyState')}</div>}
             </div>
           );
         })}
