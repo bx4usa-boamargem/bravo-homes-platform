@@ -448,6 +448,7 @@ export default function AdminDashboard() {
            backgroundColor: '#4285F4',
            borderColor: '#4285F4',
            textColor: '#fff',
+           className: 'google-event',
            extendedProps: { is_google_native: true }
         }));
         setGoogleEvents(gEvents);
