@@ -123,7 +123,7 @@
 .lead-val{font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--gold);font-weight:500}
 
 /* BTNS */
-.btn{font-family:'DM Sans',sans-serif;font-weight:600;padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:0.8rem;transition:all .15s}
+.btn{font-family:'DM Sans',sans-serif;font-weight:600;padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:0.8rem;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
 .btn.gold{background:var(--gold);color:#0A0D12}.btn.gold:hover{background:var(--gold2)}
 .btn.ghost{background:var(--bg3);color:var(--t2);border:1px solid var(--b)}.btn.ghost:hover{color:var(--text);border-color:var(--b2)}
 
