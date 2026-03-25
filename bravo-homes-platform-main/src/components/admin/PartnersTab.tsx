@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useLanguage } from '../../lib/i18n';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';

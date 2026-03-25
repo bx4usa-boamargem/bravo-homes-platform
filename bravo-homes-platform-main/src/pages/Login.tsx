@@ -7,7 +7,7 @@ import './Login.css';
 export default function Login() {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<'profile' | 'login' | 'register'>('login');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'parceiro' | 'cliente' | null>('admin');
+
   const [showPassword, setShowPassword] = useState(false);
   const [showRegPassword, setShowRegPassword] = useState(false);
   const { t } = useLanguage();
@@ -64,7 +64,7 @@ export default function Login() {
     setLoading(true);
     setAuthError(null);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: regEmail,
       password: regPassword,
       options: {
