@@ -700,6 +700,7 @@ export default function PartnerDashboard() {
               events={events}
               logs={logs}
               setActiveTab={setActiveTab}
+              user={user}
             />
           )}
 
