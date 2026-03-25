@@ -8,7 +8,14 @@ export function useLeads() {
   const [notesInput, setNotesInput] = useState('');
   const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
   const [newLeadForm, setNewLeadForm] = useState({
-    name: '', service_type: 'Bathroom Remodel', city: '', email: '', phone: '', urgency: 'warm', estimated_value: '', partner_id: ''
+    name: '',
+    service_type: '',
+    city: '',
+    email: '',
+    phone: '',
+    urgency: '',
+    estimated_value: '',
+    partner_id: ''
   });
 
   const fetchLeads = async () => {
@@ -39,7 +46,7 @@ export function useLeads() {
   };
 
   const resetNewLeadForm = () => {
-    setNewLeadForm({ name: '', service_type: 'Bathroom Remodel', city: '', email: '', phone: '', urgency: 'warm', estimated_value: '', partner_id: '' });
+    setNewLeadForm({ name: '', service_type: '', city: '', email: '', phone: '', urgency: '', estimated_value: '', partner_id: '' });
   };
 
   return {

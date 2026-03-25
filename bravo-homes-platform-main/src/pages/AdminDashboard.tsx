@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   
   // New Lead Modal
   const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
-  const [newLeadForm, setNewLeadForm] = useState({ name: '', service_type: 'Bathroom Remodel', city: '', email: '', phone: '', urgency: 'warm', estimated_value: '', partner_id: '' });
+  const [newLeadForm, setNewLeadForm] = useState({ name: '', service_type: '', city: '', email: '', phone: '', urgency: '', estimated_value: '', partner_id: '' });
 
   // Event Modal
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -647,7 +647,7 @@ export default function AdminDashboard() {
     if (!error && newLead) {
       queryClient.invalidateQueries({ queryKey: adminKeys.leads() });
       setIsNewLeadOpen(false);
-      setNewLeadForm({ name: '', service_type: 'Bathroom Remodel', city: '', email: '', phone: '', urgency: 'warm', estimated_value: '', partner_id: '' });
+      setNewLeadForm({ name: '', service_type: '', city: '', email: '', phone: '', urgency: '', estimated_value: '', partner_id: '' });
       showToast('Lead criado com sucesso!');
       // Direct browser notification
       const prefs = JSON.parse(localStorage.getItem('bravo_notif_prefs') || '{"new_lead":true}');

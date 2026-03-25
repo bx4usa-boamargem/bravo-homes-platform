@@ -47,7 +47,7 @@ export default function PartnerDashboard() {
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, msg: string, type: 'error' | 'success'} | null>(null);
-  const [newProjectForm, setNewProjectForm] = useState({ name: '', service_type: 'Reforma', contract_value: '', deadline: '' });
+  const [newProjectForm, setNewProjectForm] = useState({ name: '', service_type: '', contract_value: '', deadline: '' });
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [newStageName, setNewStageName] = useState('');
   const [projectFiles, setProjectFiles] = useState<ProjectDocument[]>([]);
@@ -172,7 +172,7 @@ export default function PartnerDashboard() {
       } else {
          showToast("Sucesso", "Projeto criado com sucesso!", "success");
          setIsNewProjectOpen(false);
-         setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '' });
+         setNewProjectForm({ name: '', service_type: '', contract_value: '', deadline: '' });
          // Refresh projects list from database
          const { data: refreshed } = await supabase.from('projects').select('*');
          if (refreshed) setProjects(refreshed);
@@ -889,6 +889,7 @@ export default function PartnerDashboard() {
                   <div style={{width: '100%'}}>
                     <label className="f-label">Tipo de Serviço *</label>
                     <select required className="f-inp" value={newProjectForm.service_type} onChange={e => setNewProjectForm({...newProjectForm, service_type: e.target.value})}>
+                      <option value="" disabled>-- Selecione --</option>
                       <option value="Reforma Completa">Reforma Completa</option>
                       <option value="Bathroom Remodel">Bathroom Remodel</option>
                       <option value="Kitchen Remodel">Kitchen Remodel</option>
