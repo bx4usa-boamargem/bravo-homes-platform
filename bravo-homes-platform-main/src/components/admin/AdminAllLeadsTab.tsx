@@ -3,6 +3,8 @@ import { useAdminLeads, useDeleteLead } from '../../hooks/useAdminQueries';
 import { useToast } from './Toast';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';
+import { useCSVLeads } from '../../hooks/useCSVLeads';
+import { useRef } from 'react';
 
 interface AdminAllLeadsTabProps {
   setIsNewLeadOpen: (val: boolean) => void;
@@ -15,6 +17,27 @@ export default function AdminAllLeadsTab({ setIsNewLeadOpen, setSelectedLead, sh
   const { data: leads = [], isLoading } = useAdminLeads();
   const deleteLeadMutation = useDeleteLead();
   const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { exportLeadsToCSV, importLeadsFromCSV, isImporting } = useCSVLeads();
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    showToast('Iniciando importação, aguarde...');
+    const result = await importLeadsFromCSV(file);
+    if (result.error) {
+      showToast(`Erro na importação: ${result.error}`);
+    } else {
+      showToast(`Importação concluída! ${result.success} salvos, ${result.skipped} ignorados/existentes.`);
+    }
+
+    e.target.value = '';
+  };
 
   if (isLoading) {
     return <div className="p-8 text-center text-gray-400">{t('loadingLeads')}</div>;
@@ -24,7 +47,16 @@ export default function AdminAllLeadsTab({ setIsNewLeadOpen, setSelectedLead, sh
     <div className="page active">
       <div className="u-section-header">
         <div className="u-syne-title">{t('allLeads')}</div>
-        <Button variant="gold" onClick={() => setIsNewLeadOpen(true)}>{t('newLeadBtn')}</Button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <input type="file" accept=".csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+          <Button variant="ghost" onClick={handleImportClick} disabled={isImporting} style={{ border: '1px solid var(--b)' }}>
+            {isImporting ? '⏳ Importando...' : '📥 Importar CSV'}
+          </Button>
+          <Button variant="ghost" onClick={() => exportLeadsToCSV(leads as any)} style={{ border: '1px solid var(--b)' }}>
+            📤 Exportar
+          </Button>
+          <Button variant="gold" onClick={() => setIsNewLeadOpen(true)}>{t('newLeadBtn')}</Button>
+        </div>
       </div>
       <Card>
         <CardContent className="p-0 overflow-x-auto">
