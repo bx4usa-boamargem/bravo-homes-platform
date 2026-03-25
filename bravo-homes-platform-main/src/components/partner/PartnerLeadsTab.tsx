@@ -84,7 +84,7 @@ export default function PartnerLeadsTab({
 
               <div className="u-mb-14">
                 <label style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',color:'var(--t3)',textTransform:'uppercase',letterSpacing:1,display:'block',marginBottom:6}}>Status do Lead</label>
-                <select className="f-inp" value={l.status || 'Novo'} onChange={e => updateLeadStatus(l.id, e.target.value)}>
+                <select className="f-inp" value={l.status || ''} onChange={e => updateLeadStatus(l.id, e.target.value)}>
                   <option value="" disabled>-- Selecione --</option>
                   {leadStatuses.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>

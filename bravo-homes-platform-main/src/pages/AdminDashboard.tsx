@@ -134,7 +134,7 @@ export default function AdminDashboard() {
 
   const handleCreateProject = () => {
     setEditingProjectId(null);
-    setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '', start_date: '', client_id: '' });
+    setNewProjectForm({ name: '', service_type: '', contract_value: '', deadline: '', start_date: '', client_id: '' });
     setProjectClientMode('existing');
     setNewClientName('');
     setIsNewProjectOpen(true);
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
     // Always close popup
     setIsNewProjectOpen(false);
     setEditingProjectId(null);
-    setNewProjectForm({ name: '', service_type: 'Reforma', contract_value: '', deadline: '', start_date: '', client_id: '' });
+    setNewProjectForm({ name: '', service_type: '', contract_value: '', deadline: '', start_date: '', client_id: '' });
     setNewClientName('');
   };
 
@@ -1450,7 +1450,8 @@ export default function AdminDashboard() {
                 <div style={{marginTop: '20px'}}>
                   <div className="dlabel">Ações / Mudar Fase</div>
                   <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px'}}>
-                    <select className="f-inp" style={{width: 'auto'}} value={selectedLead.status} onChange={(e) => updateLead(selectedLead.id, {status: e.target.value})}>
+                    <select className="f-inp" style={{width: 'auto'}} value={selectedLead.status || ''} onChange={(e) => updateLead(selectedLead.id, {status: e.target.value})}>
+                      <option value="" disabled>-- Selecione --</option>
                       <option value="new">Nova / Recebida</option>
                       <option value="contacted">Em Contato</option>
                       <option value="scheduling">Agendamento de Vistoria</option>
@@ -1715,7 +1716,8 @@ export default function AdminDashboard() {
                     </div>
                     <div className="u-flex-1">
                       <label className="f-label">Status</label>
-                      <select className="f-inp" value={editPartner.state || 'available'} onChange={e => setEditPartner({...editPartner, state: e.target.value})}>
+                      <select className="f-inp" value={editPartner.state || ''} onChange={e => setEditPartner({...editPartner, state: e.target.value})}>
+                        <option value="" disabled>-- Selecione --</option>
                         <option value="available">Disponível</option>
                         <option value="busy">Em Projeto</option>
                         <option value="inactive">Inativo</option>

@@ -89,7 +89,7 @@ export default function PartnerCalendarTab({ projects, showToast }: PartnerCalen
               <div>
                 <label className="u-mono-label">Projeto (opcional)</label>
                 <select className="f-inp u-w-full" value={newEvent.project_id} onChange={e => setNewEvent({...newEvent, project_id: e.target.value})}>
-                  <option value="">-- Selecione --</option>
+                  <option value="" disabled>-- Selecione --</option>
                   {projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>

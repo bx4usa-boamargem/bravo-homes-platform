@@ -39,7 +39,7 @@ export default function NewProjectModal({
               </div>
               <div>
                 <label className="f-label">Tipo de Serviço</label>
-                <Select value={form.service_type} onChange={e => setForm({...form, service_type: e.target.value})}>
+                <Select required value={form.service_type} onChange={e => setForm({...form, service_type: e.target.value})}>
                   <option value="" disabled>-- Selecione --</option>
                   <option value="Reforma">Reforma</option>
                   <option value="Reforma Residencial">Reforma Residencial</option>

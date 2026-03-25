@@ -34,7 +34,7 @@ export default function NewLeadModal({ isOpen, onClose, onSubmit, form, setForm,
               </div>
               <div>
                 <label className="f-label">Tipo de Serviço</label>
-                <Select value={form.service_type} onChange={e => setForm({...form, service_type: e.target.value})}>
+                <Select required value={form.service_type} onChange={e => setForm({...form, service_type: e.target.value})}>
                   <option value="" disabled>-- Selecione --</option>
                   <option value="Bathroom Remodel">Bathroom Remodel</option>
                   <option value="Kitchen Remodel">Kitchen Remodel</option>
@@ -60,7 +60,7 @@ export default function NewLeadModal({ isOpen, onClose, onSubmit, form, setForm,
               </div>
               <div>
                 <label className="f-label">Urgência</label>
-                <Select value={form.urgency} onChange={e => setForm({...form, urgency: e.target.value})}>
+                <Select required value={form.urgency} onChange={e => setForm({...form, urgency: e.target.value})}>
                   <option value="" disabled>-- Selecione --</option>
                   <option value="hot">🔥 Quente</option>
                   <option value="warm">🟡 Morno</option>
