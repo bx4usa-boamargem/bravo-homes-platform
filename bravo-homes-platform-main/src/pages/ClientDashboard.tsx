@@ -142,7 +142,16 @@ export default function ClientDashboard() {
           
           {/* Notification Bell */}
           <div style={{position:'relative',marginLeft:'auto'}}>
-            <button onClick={() => setNotifOpen(!notifOpen)} style={{background: notifOpen ? 'var(--gold)' : 'var(--bg3)',border:'1px solid var(--b)',borderRadius:'8px',width:36,height:36,cursor:'pointer',fontSize:'1rem',position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <button onClick={async () => {
+              setNotifOpen(!notifOpen);
+              if (!notifOpen && unreadCount > 0) {
+                const dbNotifs = notifications.filter(n => !n.read && !String(n.id).startsWith('msg-'));
+                if (dbNotifs.length > 0) {
+                  await supabase.from('notifications').update({ read: true }).eq('user_id', user?.id).eq('read', false);
+                }
+                setNotifications(prev => prev.map(n => ({...n, read: true})));
+              }
+            }} style={{background: notifOpen ? 'var(--gold)' : 'var(--bg3)',border:'1px solid var(--b)',borderRadius:'8px',width:36,height:36,cursor:'pointer',fontSize:'1rem',position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}>
               🔔
               {unreadCount > 0 && <span style={{position:'absolute',top:'-2px',right:'-2px',background:'var(--red)',color:'#fff',fontSize:'0.55rem',fontWeight:700,borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center'}}>{unreadCount}</span>}
             </button>
@@ -150,13 +159,22 @@ export default function ClientDashboard() {
               <div style={{position:'absolute',top:'100%',right:0,width:'320px',maxHeight:'350px',overflowY:'auto',background:'var(--bg2)',border:'1px solid var(--b)',borderRadius:'12px',boxShadow:'0 8px 30px rgba(0,0,0,0.3)',zIndex:999,padding:'8px 0',marginTop:'8px'}}>
                 <div style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <span style={{fontWeight:700,fontSize:'0.85rem'}}>🔔 Notificações</span>
-                  {unreadCount > 0 && <button style={{fontSize:'0.65rem',color:'var(--gold)',background:'none',border:'none',cursor:'pointer',fontWeight:600}} onClick={() => setNotifications(prev => prev.map(n => ({...n, read: true})))}>Marcar todas lidas</button>}
+                  {unreadCount > 0 && <button style={{fontSize:'0.65rem',color:'var(--gold)',background:'none',border:'none',cursor:'pointer',fontWeight:600}} onClick={async () => {
+                    const dbNotifs = notifications.filter(n => !n.read && !String(n.id).startsWith('msg-'));
+                    if (dbNotifs.length > 0) await supabase.from('notifications').update({ read: true }).eq('user_id', user?.id).eq('read', false);
+                    setNotifications(prev => prev.map(n => ({...n, read: true})));
+                  }}>Marcar todas lidas</button>}
                 </div>
                 {notifications.length === 0 ? (
                   <div style={{padding:'24px',textAlign:'center',color:'var(--t3)',fontSize:'0.8rem'}}>Sem notificações</div>
                 ) : (
                   notifications.slice(0, 15).map(n => (
-                    <div key={n.id} onClick={() => setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read: true} : x))} style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',cursor:'pointer',background: n.read ? 'transparent' : 'rgba(201,148,58,0.08)',transition:'all .2s'}}>
+                    <div key={n.id} onClick={async () => {
+                    if (!n.read) {
+                      if (!String(n.id).startsWith('msg-')) await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+                      setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read: true} : x));
+                    }
+                  }} style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',cursor:'pointer',background: n.read ? 'transparent' : 'rgba(201,148,58,0.08)',transition:'all .2s'}}>
                       <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
                         <span style={{fontSize:'0.7rem'}}>{n.type}</span>
                         {!n.read && <span style={{width:6,height:6,borderRadius:'50%',background:'var(--red)',flexShrink:0}}></span>}

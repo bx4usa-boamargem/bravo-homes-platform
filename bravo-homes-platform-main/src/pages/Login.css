@@ -67,7 +67,7 @@
   background-image: 
     linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 34px 34px;
   pointer-events: none;
   z-index: 0;
 }
@@ -75,8 +75,8 @@
 /* Main Container */
 .login-container {
   width: 100%;
-  max-width: 440px;
-  padding: 0 24px;
+  max-width: 374px;
+  padding: 0 20px;
   position: relative;
   z-index: 10;
   display: flex;
@@ -86,15 +86,15 @@
 /* Logo Area */
 .logo-wrapper {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 34px;
   animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .logo-img {
-  width: 180px;
+  width: 153px;
   height: auto;
   display: block;
-  margin: 0 auto 8px;
-  border-radius: 12px;
+  margin: 0 auto 6px;
+  border-radius: 10px;
 }
 .logo-subtext {
   font-family: 'DM Mono', monospace;
@@ -102,13 +102,13 @@
   color: var(--text-muted);
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-top: 6px;
+  margin-top: 5px;
 }
 
 /* Create Account Link */
 .create-account-row {
   text-align: center;
-  margin-top: 16px;
+  margin-top: 13px;
   font-size: 0.82rem;
   color: var(--text-muted);
 }
@@ -127,14 +127,14 @@
 .view-container {
   position: relative;
   width: 100%;
-  min-height: 380px; 
+  min-height: 323px; 
 }
 .view {
   position: absolute;
   top: 0; left: 0; right: 0;
   opacity: 0;
   visibility: hidden;
-  transform: translateX(20px);
+  transform: translateX(17px);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .view.active {
@@ -144,7 +144,7 @@
   position: relative;
 }
 .view.exit-left {
-  transform: translateX(-20px);
+  transform: translateX(-17px);
   opacity: 0;
   visibility: hidden;
   position: absolute;
@@ -156,23 +156,23 @@
   font-size: 1.1rem;
   text-align: center;
   color: var(--text-main);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   font-weight: 500;
 }
 .profile-cards {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 13px;
 }
 .profile-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 24px;
+  border-radius: 13px;
+  padding: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 17px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -190,16 +190,16 @@
   border-color: var(--border-focus);
   background: #0D1117;
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 27px rgba(0,0,0,0.5);
 }
 .profile-card:hover::before {
   transform: translateX(100%);
   opacity: 1;
 }
 .pc-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: var(--bg-input);
   display: flex;
   align-items: center;
@@ -212,7 +212,7 @@
   font-family: 'Syne', sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .pc-info p {
   font-size: 0.8rem;
@@ -226,36 +226,36 @@
 }
 .profile-card:hover .pc-arrow {
   color: var(--gold-light);
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
 /* Login Form Card */
 .login-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 32px 28px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
+  border-radius: 13px;
+  padding: 27px 23px;
+  box-shadow: 0 20px 54px rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
 }
 
 .back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: none;
   border: none;
   color: var(--text-muted);
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   cursor: pointer;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   transition: color 0.2s;
 }
 .back-btn:hover { color: var(--text-main); }
 
 .form-header {
-  margin-bottom: 28px;
+  margin-bottom: 23px;
   text-align: center;
 }
 .form-header h2 {
@@ -266,26 +266,26 @@
 .form-header p {
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-top: 6px;
+  margin-top: 5px;
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 15px;
 }
 .form-group label {
   display: block;
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 }
 .form-control {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-light);
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  padding: 11px 13px;
   color: var(--text-main);
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
@@ -294,7 +294,7 @@
 }
 .form-control:focus {
   border-color: var(--gold-primary);
-  box-shadow: 0 0 0 3px rgba(201,148,58,0.1);
+  box-shadow: 0 0 0 2px rgba(201,148,58,0.1);
 }
 .form-control::placeholder {
   color: var(--text-dim);
@@ -305,14 +305,14 @@
 }
 .pass-toggle {
   position: absolute;
-  right: 14px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text-dim);
   cursor: pointer;
-  padding: 4px;
+  padding: 3px;
   font-size: 1rem;
 }
 .pass-toggle:hover { color: var(--text-muted); }
@@ -321,20 +321,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
-  margin-bottom: 24px;
+  margin-top: 8px;
+  margin-bottom: 20px;
 }
 .remember-me {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.8rem;
   color: var(--text-muted);
   cursor: pointer;
 }
 .remember-me input {
   accent-color: var(--gold-primary);
-  width: 14px; height: 14px;
+  width: 11px; height: 11px;
 }
 .forgot-pass {
   font-size: 0.8rem;
@@ -351,8 +351,8 @@
   background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
   color: var(--bg-base);
   border: none;
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 13px;
   font-family: 'DM Sans', sans-serif;
   font-weight: 700;
   font-size: 0.95rem;
@@ -361,11 +361,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(201,148,58,0.3);
+  box-shadow: 0 6px 20px rgba(201,148,58,0.3);
 }
 .btn-submit:disabled {
   opacity: 0.7;
@@ -373,7 +373,7 @@
 }
 
 .spinner {
-  width: 18px; height: 18px;
+  width: 15px; height: 15px;
   border: 2px solid rgba(5,6,8,0.3);
   border-top-color: var(--bg-base);
   border-radius: 50%;
@@ -384,13 +384,13 @@
 
 /* Messages & Alerts */
 .login-alert {
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 10px 13px;
+  border-radius: 6px;
   font-size: 0.85rem;
-  margin-bottom: 20px;
+  margin-bottom: 17px;
   display: none;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   line-height: 1.4;
 }
 .login-alert.show { display: flex; }
@@ -407,34 +407,34 @@
 
 /* Demo Access */
 .demo-section {
-  margin-top: 32px;
+  margin-top: 27px;
   text-align: center;
 }
 .demo-title {
   font-family: 'DM Mono', monospace;
   font-size: 0.7rem;
   color: var(--text-dim);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 .demo-title::before, .demo-title::after {
   content: '';
-  width: 40px; height: 1px;
+  width: 34px; height: 1px;
   background: var(--border-light);
 }
 .demo-badges {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
 }
 .demo-badge {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 6px 11px;
+  border-radius: 6px;
   font-size: 0.75rem;
   color: var(--text-muted);
   cursor: pointer;
@@ -448,7 +448,7 @@
 /* Footer */
 .login-footer {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 34px;
   font-family: 'DM Mono', monospace;
   font-size: 0.7rem;
   color: var(--text-dim);
@@ -456,6 +456,6 @@
 .login-footer span { color: var(--gold-primary); }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
+  from { opacity: 0; transform: translateY(-17px); }
   to { opacity: 1; transform: translateY(0); }
 }

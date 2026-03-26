@@ -259,7 +259,7 @@ export default function PartnerDashboard() {
   }, [uploadProjectId, selectedProject, activeTab]);
 
   const handleFileUpload = async (files: FileList | null, targetStageId: string | null = null, targetLogId: string | null = null, targetProjectId: string | null = null) => {
-    const activePid = targetProjectId || (targetStageId ? selectedProject?.id : uploadProjectId);
+    const activePid = targetProjectId || (targetStageId ? (selectedProject?.id || uploadProjectId) : uploadProjectId);
     if (!files || files.length === 0 || !activePid) {
       if (!activePid) showToast('Atenção', 'Selecione um projeto antes de enviar arquivos.', 'error');
       return;
@@ -864,6 +864,8 @@ export default function PartnerDashboard() {
               handleFileUpload={handleFileUpload}
               deleteFile={deleteFile}
               getFileIcon={getFileIcon}
+              t={t}
+              lang={lang}
             />
           )}
 

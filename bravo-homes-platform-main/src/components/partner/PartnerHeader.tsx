@@ -41,10 +41,19 @@ export default function PartnerHeader({
       
       {/* Notification Bell */}
       <div style={{position:'relative'}}>
-        <div onClick={() => setNotifOpen(!notifOpen)} style={{cursor:'pointer',fontSize:'1.2rem',position:'relative',padding:'4px 8px',borderRadius:'8px',background: notifOpen ? 'var(--gold)' : 'transparent',transition:'all .2s'}}>
+        <div onClick={async () => {
+          setNotifOpen(!notifOpen);
+          if (!notifOpen && unreadCount > 0) {
+            const dbNotifs = notifications.filter(n => !n.read && !String(n.id).startsWith('msg-'));
+            if (dbNotifs.length > 0) {
+              await supabase.from('notifications').update({ read: true }).eq('user_id', user?.id).eq('read', false);
+            }
+            setNotifications(prev => prev.map(n => ({...n, read: true})));
+          }
+        }} style={{cursor:'pointer',fontSize:'1.1rem',position:'relative',width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:'8px',border:'1px solid var(--b)',background: notifOpen ? 'var(--gold)' : 'var(--bg3)',transition:'all .2s'}}>
           🔔
           {unreadCount > 0 && (
-            <span style={{position:'absolute',top:'-2px',right:'0',background:'var(--red)',color:'#fff',fontSize:'0.55rem',fontWeight:700,borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center'}}>{unreadCount}</span>
+            <span style={{position:'absolute',top:'-4px',right:'-4px',background:'var(--red)',color:'#fff',fontSize:'0.55rem',fontWeight:700,borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid var(--bg)'}}>{unreadCount}</span>
           )}
         </div>
         {notifOpen && (
@@ -53,7 +62,7 @@ export default function PartnerHeader({
               <span style={{fontWeight:700,fontSize:'0.85rem'}}>🔔 Notificações</span>
               {unreadCount > 0 && (
                 <button style={{fontSize:'0.65rem',color:'var(--gold)',background:'none',border:'none',cursor:'pointer',fontWeight:600}} onClick={async () => {
-                  const dbNotifs = notifications.filter(n => !n.read && typeof n.id === 'number');
+                  const dbNotifs = notifications.filter(n => !n.read && !String(n.id).startsWith('msg-'));
                   if (dbNotifs.length > 0) await supabase.from('notifications').update({ read: true }).eq('user_id', user?.id).eq('read', false);
                   setNotifications(prev => prev.map(n => ({...n, read: true})));
                 }}>Marcar todas como lidas</button>
@@ -65,7 +74,7 @@ export default function PartnerHeader({
               notifications.map((n: any) => (
                 <div key={n.id} onClick={async () => {
                   if (!n.read) {
-                    if (typeof n.id === 'number') await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+                    if (!String(n.id).startsWith('msg-')) await supabase.from('notifications').update({ read: true }).eq('id', n.id);
                     setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read: true} : x));
                   }
                 }} style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',cursor:'pointer',background: n.read ? 'transparent' : 'rgba(201,148,58,0.08)',transition:'all .2s'}}>
