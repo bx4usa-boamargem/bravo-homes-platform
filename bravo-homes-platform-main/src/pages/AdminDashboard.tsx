@@ -1357,11 +1357,62 @@ export default function AdminDashboard() {
               <div className="g3">
                  <div className="kpi"><div className="kl">Faturamento Bruto</div><div className="kv u-text-gold">${grossRevenue.toLocaleString(undefined, {maximumFractionDigits:0})}</div></div>
                  <div className="kpi"><div className="kl">A Receber</div><div className="kv">${toReceive.toLocaleString(undefined, {maximumFractionDigits:0})}</div></div>
-                 <div className="kpi"><div className="kl">Pago aos Parceiros</div><div className="kv">${paidToPartners.toLocaleString(undefined, {maximumFractionDigits:0})}</div></div>
+                 <div className="kpi"><div className="kl">Recebido / Pago</div><div className="kv">${paidToPartners.toLocaleString(undefined, {maximumFractionDigits:0})}</div></div>
               </div>
               <div className="card">
                 <div className="ch"><span className="ct">Últimos Pagamentos</span></div>
-                <div className="cb empty-state">O módulo financeiro está sincronizando com sua conta Stripe/Banco.</div>
+                <div className="cb p-0 overflow-x-auto">
+                   <table className="tbl">
+                      <thead>
+                        <tr>
+                           <th>Lead / Cliente</th>
+                           <th>Serviço</th>
+                           <th>Valor Est.</th>
+                           <th>Parceiro(s)</th>
+                           <th>Status do Pagto</th>
+                           <th>Data / Hora</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leads.filter(l => l.assigned_partners && l.assigned_partners.length > 0).length === 0 ? (
+                           <tr><td colSpan={6} className="u-empty-state">Nenhum pagamento registrado ou lead atribuído.</td></tr>
+                        ) : (
+                           leads.filter(l => l.assigned_partners && l.assigned_partners.length > 0)
+                                .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+                                .map((lead: any) => (
+                              <tr key={lead.id}>
+                                 <td><b>{lead.name || lead.clients?.name || 'Desconhecido'}</b></td>
+                                 <td>{lead.service_type || 'N/D'}</td>
+                                 <td className="u-text-gold">${lead.estimated_value || 0}</td>
+                                 <td>
+                                    {lead.assigned_partners.map((pid: string) => partners.find(p => p.id === pid)?.full_name || partners.find(p => p.id === pid)?.name || 'Parceiro').join(', ')}
+                                 </td>
+                                 <td>
+                                    <select 
+                                       className="f-inp" 
+                                       style={{padding: '4px 8px', width: 'auto', fontSize: '0.8rem', background: lead.payment_status === 'pago' ? 'var(--green)' : 'var(--bg3)', color: lead.payment_status === 'pago' ? '#fff' : 'var(--text)'}}
+                                       value={lead.payment_status || 'pendente'}
+                                       onChange={(e) => {
+                                          const isPaid = e.target.value === 'pago';
+                                          updateLead(lead.id, { 
+                                             payment_status: e.target.value,
+                                             payment_date: isPaid ? new Date().toISOString() : null
+                                          });
+                                       }}
+                                    >
+                                       <option value="pendente">Pendente</option>
+                                       <option value="pago">Pago</option>
+                                    </select>
+                                 </td>
+                                 <td className="u-mono-tiny" style={{color: 'var(--t3)'}}>
+                                    {lead.payment_date ? new Date(lead.payment_date).toLocaleString(lang === 'pt-BR' ? 'pt-BR' : 'en-US', {dateStyle: 'short', timeStyle: 'short'}) : '-'}
+                                 </td>
+                              </tr>
+                           ))
+                        )}
+                      </tbody>
+                   </table>
+                </div>
               </div>
             </div>
           )}

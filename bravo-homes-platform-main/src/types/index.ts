@@ -71,6 +71,7 @@ export interface Partner {
   specialty?: string;
   city?: string;
   state?: string;
+  avatar_url?: string;
   status?: string;
   rating?: number;
   completed_projects?: number;
