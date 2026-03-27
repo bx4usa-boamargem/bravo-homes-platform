@@ -24,7 +24,7 @@ export default function PartnersTab({
       <Card>
         <CardContent className="p-0 overflow-x-auto">
           <table className="tbl">
-            <thead><tr><th>{t('nameCityCol')}</th><th>{t('specialtyCol')}</th><th>{t('projectsCol')}</th><th>{t('status')}</th><th>{t('actionsCol')}</th></tr></thead>
+            <thead><tr><th>Nome Completo</th><th>Especialidades</th><th>Projetos</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody>
               {partners.length === 0 && !loadingDb && (
                 <tr><td colSpan={5} className="u-empty-state">{t('noPartnerFound')}</td></tr>
@@ -33,7 +33,13 @@ export default function PartnersTab({
                 <tr key={p.id}>
                   <td>
                     <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                      <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px'}}>{(p.name || p.full_name || 'N/A').substring(0,2).toUpperCase()}</div>
+                      <div className="av" style={{background:'var(--bg3)', border:'1px solid var(--b)', width:'32px', height:'32px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%'}}>
+                        {p.avatar_url ? (
+                          <img src={p.avatar_url} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                        ) : (
+                          (p.name || p.full_name || 'N/A').substring(0,2).toUpperCase()
+                        )}
+                      </div>
                       <div>
                         <b>{p.name || p.full_name || t('noName')}</b>
                         <div className="u-mono-tiny">{p.city || 'Georgia'} • {p.phone || t('noContact')}</div>

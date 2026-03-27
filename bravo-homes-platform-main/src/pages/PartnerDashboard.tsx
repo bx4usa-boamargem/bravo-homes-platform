@@ -200,7 +200,8 @@ export default function PartnerDashboard() {
         start_date: start_date || null,
         deadline: deadline || null,
         client_id: lead_id || null,
-        lead_id: lead_id || null
+        lead_id: lead_id || null,
+        partner_id: masterId
       };
       
       const safeProjectData = {
@@ -210,7 +211,8 @@ export default function PartnerDashboard() {
         progress: 0,
         contract_value: contract_value ? parseInt(contract_value.toString()) : 0,
         start_date: start_date || null,
-        deadline: deadline || null
+        deadline: deadline || null,
+        partner_id: masterId
       };
 
       let { error } = await supabase.from('projects').insert([fullProjectData]);

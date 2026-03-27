@@ -1699,8 +1699,12 @@ export default function AdminDashboard() {
             </div>
             <div className="modal-body">
               <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px'}}>
-                <div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--gold)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold'}}>
-                  {(selectedPartner.name || selectedPartner.full_name || 'PA').substring(0,2).toUpperCase()}
+                <div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--gold)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold', overflow: 'hidden'}}>
+                  {selectedPartner.avatar_url ? (
+                    <img src={selectedPartner.avatar_url} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                  ) : (
+                    (selectedPartner.name || selectedPartner.full_name || 'PA').substring(0,2).toUpperCase()
+                  )}
                 </div>
                 <div className="u-flex-1">
                   <h2 style={{margin: 0, fontSize: '1.2rem', color: 'var(--gold)'}}>{selectedPartner.name || selectedPartner.full_name || 'Sem nome'}</h2>
