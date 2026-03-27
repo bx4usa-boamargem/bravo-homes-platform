@@ -38,9 +38,14 @@ export default function PartnerStagesTab({
 
   return (
     <div className="page active">
-      <div className="u-mb-16">
-        <div className="u-mono-label-xs">Gerenciamento de Etapas</div>
-        <div className="u-syne-title u-mt-3">Etapas de Execução</div>
+      <div className="u-mb-16" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <div>
+          <div className="u-mono-label-xs">Gerenciamento de Etapas</div>
+          <div className="u-syne-title u-mt-3">Etapas de Execução</div>
+        </div>
+        <button className="btn ghost" onClick={() => setActiveTab('projects')} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px'}}>
+          <span>⬅</span> Voltar para Projetos
+        </button>
       </div>
 
       <div className="u-mb-14">
@@ -68,7 +73,7 @@ export default function PartnerStagesTab({
               <div className="prog-bar" style={{height:12,borderRadius:6,marginBottom:12}}><div className="prog-fill" style={{width:`${selectedProject.progress || 0}%`,borderRadius:6,transition:'width 0.3s'}}></div></div>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.75rem',color:'var(--t3)'}}>
                 <span>{projectStages.filter(s => s.status === 'completed').length} de {projectStages.length} etapas concluídas</span>
-                <span>📅 Prazo: {selectedProject.deadline ? new Date(selectedProject.deadline).toLocaleDateString() : 'Não definido'}</span>
+                <span>📅 Prazo: {selectedProject.deadline ? new Date(selectedProject.deadline + 'T12:00:00').toLocaleDateString() : 'Não definido'}</span>
               </div>
             </div>
           </div>

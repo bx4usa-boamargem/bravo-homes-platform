@@ -44,7 +44,8 @@ export default function PartnerDashboard() {
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, msg: string, type: 'error' | 'success'} | null>(null);
-  const [newProjectForm, setNewProjectForm] = useState({ name: '', service_type: '', contract_value: '', deadline: '' });
+  const [newProjectForm, setNewProjectForm] = useState({ name: '', lead_name: '', lead_id: '', service_type: '', contract_value: '', start_date: '', deadline: '' });
+  const [showLeadSelect, setShowLeadSelect] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [newStageName, setNewStageName] = useState('');
   const [projectFiles, setProjectFiles] = useState<ProjectDocument[]>([]);
@@ -152,16 +153,37 @@ export default function PartnerDashboard() {
     }
     setIsSubmittingProject(true);
     try {
-      const { name, service_type, contract_value, deadline } = newProjectForm;
+      const { name, lead_name, lead_id, service_type, contract_value, start_date, deadline } = newProjectForm;
+      const combinedName = lead_name ? `${lead_name} - ${name}` : name;
       
-      const { error } = await supabase.from('projects').insert([{ 
-        name, 
+      const fullProjectData = {
+        name: combinedName, 
         service_type: service_type || 'Reforma Residencial', 
         status: 'active', 
         progress: 0,
         contract_value: contract_value ? parseInt(contract_value.toString()) : 0,
+        start_date: start_date || null,
+        deadline: deadline || null,
+        client_id: lead_id || null,
+        lead_id: lead_id || null
+      };
+      
+      const safeProjectData = {
+        name: combinedName, 
+        service_type: service_type || 'Reforma Residencial', 
+        status: 'active', 
+        progress: 0,
+        contract_value: contract_value ? parseInt(contract_value.toString()) : 0,
+        start_date: start_date || null,
         deadline: deadline || null
-      }]);
+      };
+
+      let { error } = await supabase.from('projects').insert([fullProjectData]);
+      
+      if (error && error.message.includes('column')) {
+         // fallback if client_id or lead_id columns don't exist
+         ({ error } = await supabase.from('projects').insert([safeProjectData]));
+      }
       
       if (error) {
          console.error('Supabase Insert Error:', error);
@@ -169,7 +191,7 @@ export default function PartnerDashboard() {
       } else {
          showToast("Sucesso", "Projeto criado com sucesso!", "success");
          setIsNewProjectOpen(false);
-         setNewProjectForm({ name: '', service_type: '', contract_value: '', deadline: '' });
+         setNewProjectForm({ name: '', lead_name: '', lead_id: '', service_type: '', contract_value: '', start_date: '', deadline: '' });
          // Refresh projects list from database
          const { data: refreshed } = await supabase.from('projects').select('*');
          if (refreshed) setProjects(refreshed);
@@ -644,6 +666,7 @@ export default function PartnerDashboard() {
               handleCreateProject={handleCreateProject}
               setSelectedProject={setSelectedProject}
               setActiveTab={setActiveTab}
+              leads={leads}
             />
           )}
 
@@ -818,21 +841,65 @@ export default function PartnerDashboard() {
       {/* NOVO PROJETO MODAL */}
       {isNewProjectOpen && (
         <div className="modal-overlay open" onClick={() => setIsNewProjectOpen(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth: '450px'}}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth: '650px'}}>
             <div className="modal-head">
-              <div className="modal-title">Criar Novo Projeto</div>
-              <button className="dclose" onClick={() => setIsNewProjectOpen(false)}>✕</button>
+               <div className="modal-title">Criar Novo Projeto</div>
+               <button className="dclose" onClick={() => setIsNewProjectOpen(false)}>✕</button>
             </div>
             <form onSubmit={submitProjectForm}>
               <div className="modal-body">
-                <div className="f-row" style={{marginBottom: '15px'}}>
-                  <div style={{width: '100%'}}>
-                    <label className="f-label">Nome do Projeto *</label>
-                    <input required type="text" className="f-inp" placeholder="Ex: Reforma Johnson" value={newProjectForm.name} onChange={e => setNewProjectForm({...newProjectForm, name: e.target.value})} />
+                <div style={{display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '20px', marginBottom: '20px'}}>
+                  {/* Row 1 */}
+                  <div style={{position: 'relative'}}>
+                    <label className="f-label">Lead Atribuído *</label>
+                    <div style={{position: 'relative'}}>
+                      <input required type="text" className="f-inp" style={{paddingRight: '30px'}} placeholder="Busque pelo Lead..." value={newProjectForm.lead_name} 
+                        onChange={e => {
+                          setNewProjectForm({...newProjectForm, lead_name: e.target.value});
+                          setShowLeadSelect(true);
+                        }}
+                        onFocus={() => setShowLeadSelect(true)}
+                        onBlur={() => setTimeout(() => setShowLeadSelect(false), 200)}
+                        autoComplete="off" 
+                      />
+                      <span style={{position: 'absolute', right: '12px', top: '12px', pointerEvents: 'none', fontSize: '0.75rem', opacity: 0.7}}>▼</span>
+                      {showLeadSelect && (
+                        <div style={{
+                          position: 'absolute', top: '100%', left: 0, right: 0, 
+                          background: 'var(--bg2)', border: '1px solid var(--border)', 
+                          borderRadius: '6px', maxHeight: '180px', overflowY: 'auto', 
+                          zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', marginTop: '4px'
+                        }}>
+                          {leads.filter((l: any) => l.name.toLowerCase().includes(newProjectForm.lead_name.toLowerCase())).length > 0 ? (
+                            leads.filter((l: any) => l.name.toLowerCase().includes(newProjectForm.lead_name.toLowerCase())).map((l: any) => (
+                              <div 
+                                key={l.id} 
+                                style={{padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border)', fontSize: '0.9rem', color: 'var(--text)'}}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setNewProjectForm({...newProjectForm, lead_name: l.name, lead_id: l.id});
+                                  setShowLeadSelect(false);
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                              >
+                                {l.name}
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{padding: '10px 14px', fontSize: '0.85rem', color: 'var(--t3)'}}>Nenhum lead encontrado.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="f-row" style={{marginBottom: '15px'}}>
-                  <div style={{width: '100%'}}>
+                  <div>
+                    <label className="f-label">Nome do Projeto *</label>
+                    <input required type="text" className="f-inp" placeholder="Ex: Reforma da Casa" value={newProjectForm.name} onChange={e => setNewProjectForm({...newProjectForm, name: e.target.value})} />
+                  </div>
+
+                  {/* Row 2 */}
+                  <div>
                     <label className="f-label">Tipo de Serviço *</label>
                     <select required className="f-inp" value={newProjectForm.service_type} onChange={e => setNewProjectForm({...newProjectForm, service_type: e.target.value})}>
                       <option value="" disabled>-- Selecione --</option>
@@ -843,14 +910,18 @@ export default function PartnerDashboard() {
                       <option value="Outro">Outro</option>
                     </select>
                   </div>
-                </div>
-                <div className="f-row" style={{marginBottom: '20px', display: 'flex', gap: '15px'}}>
-                  <div style={{flex: 1}}>
-                    <label className="f-label" style={{whiteSpace: 'nowrap'}}>Valor Estimado ($)</label>
+                  <div>
+                    <label className="f-label">Valor Estimado ($)</label>
                     <input type="number" className="f-inp" placeholder="Ex: 25000" value={newProjectForm.contract_value} onChange={e => setNewProjectForm({...newProjectForm, contract_value: e.target.value})} />
                   </div>
-                  <div style={{flex: 1}}>
-                    <label className="f-label" style={{whiteSpace: 'nowrap'}}>Prazo de Entrega</label>
+
+                  {/* Row 3 */}
+                  <div>
+                    <label className="f-label">Data de Início</label>
+                    <input type="date" className="f-inp" value={newProjectForm.start_date} onChange={e => setNewProjectForm({...newProjectForm, start_date: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="f-label">Prazo de Entrega</label>
                     <input type="date" className="f-inp" value={newProjectForm.deadline} onChange={e => setNewProjectForm({...newProjectForm, deadline: e.target.value})} />
                   </div>
                 </div>

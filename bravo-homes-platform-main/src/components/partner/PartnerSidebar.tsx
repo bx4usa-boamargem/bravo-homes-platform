@@ -44,6 +44,9 @@ export default function PartnerSidebar({
           <div className={navItemClass('dashboard')} onClick={() => navTo('dashboard')}>
             <span className="ni-icon">◈</span>{t('dashboard')}
           </div>
+          <div className={navItemClass('leads')} onClick={() => navTo('leads')}>
+            <span className="ni-icon">◎</span>{t('assignedLeads')}{leadsCount > 0 && <span className="badge">{leadsCount}</span>}
+          </div>
 
           <div className="sb-sec">{t('myProjects')}</div>
           <div className={navItemClass('projects')} onClick={() => navTo('projects')}>
@@ -60,9 +63,6 @@ export default function PartnerSidebar({
           </div>
 
           <div className="sb-sec">{t('messaging')}</div>
-          <div className={navItemClass('leads')} onClick={() => navTo('leads')}>
-            <span className="ni-icon">◎</span>{t('assignedLeads')}{leadsCount > 0 && <span className="badge">{leadsCount}</span>}
-          </div>
           <div className={navItemClass('chat')} onClick={() => navTo('chat')}>
             <span className="ni-icon">💬</span>{t('chat')}
           </div>
