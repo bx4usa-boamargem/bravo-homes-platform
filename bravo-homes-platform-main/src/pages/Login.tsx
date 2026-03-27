@@ -69,10 +69,25 @@ export default function Login() {
     setLoading(false);
 
     const role = profile?.role || 'cliente';
-    // Adicionei um pequeno delay caso a inserção não esteja pronta na sessão imediatamente
-    if (role === 'admin') navigate('/admin');
-    else if (role === 'parceiro') navigate('/partner');
-    else navigate('/client');
+    
+    if (role === 'admin') {
+      navigate('/admin');
+    } else if (role === 'parceiro') {
+      navigate('/partner');
+    } else {
+      // Check if it's an employee before routing to client
+      const { data: empData } = await supabase
+        .from('partner_employees')
+        .select('id')
+        .eq('email', data.user.email)
+        .maybeSingle();
+
+      if (empData) {
+        navigate('/partner');
+      } else {
+        navigate('/client');
+      }
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {

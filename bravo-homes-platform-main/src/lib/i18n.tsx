@@ -386,7 +386,6 @@ const T: Translations = {
   photosDocs: { 'pt-BR': 'Fotos & Docs', 'en-US': 'Photos & Docs', es: 'Fotos y Docs' },
   myProfile: { 'pt-BR': 'Meu Perfil', 'en-US': 'My Profile', es: 'Mi Perfil' },
   account: { 'pt-BR': 'CONTA', 'en-US': 'ACCOUNT', es: 'CUENTA' },
-  files: { 'pt-BR': 'ARQUIVOS', 'en-US': 'FILES', es: 'ARCHIVOS' },
   calendarOfWorks: { 'pt-BR': 'Calendário de Obras', 'en-US': 'Works Calendar', es: 'Calendario de Obras' },
   system: { 'pt-BR': 'SISTEMA', 'en-US': 'SYSTEM', es: 'SISTEMA' },
 

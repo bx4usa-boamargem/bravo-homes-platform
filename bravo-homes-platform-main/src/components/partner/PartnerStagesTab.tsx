@@ -17,13 +17,18 @@ interface PartnerStagesTabProps {
   handleFileUpload?: (files: FileList | null, stageId?: string) => void;
   deleteFile?: (f: any) => void;
   isUploading?: boolean;
+  canCreate?: boolean;
+  canDone?: boolean;
+  canDelete?: boolean;
+  canUpload?: boolean;
 }
 
 export default function PartnerStagesTab({
   projects, selectedProject, setSelectedProject, projectStages,
   newStageName, setNewStageName, addStage, toggleStage, deleteStage,
   showToast, setUploadProjectId, setActiveTab,
-  projectFiles = [], handleFileUpload, deleteFile, isUploading = false
+  projectFiles = [], handleFileUpload, deleteFile, isUploading = false,
+  canCreate = true, canDone = true, canDelete = true, canUpload = true
 }: PartnerStagesTabProps) {
   const [expandedSections, setExpandedSections] = React.useState<Set<string>>(new Set());
 
@@ -90,7 +95,7 @@ export default function PartnerStagesTab({
                   onChange={e => setNewStageName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addStage()}
                 />
-                <button className="btn gold" onClick={addStage} style={{whiteSpace:'nowrap'}}>+ Adicionar</button>
+                <button className="btn gold" onClick={() => { if (canCreate) addStage(); else showToast?.('Acesso Negado', 'Permissão negada para criar etapa.', 'error'); }} style={{whiteSpace:'nowrap'}}>+ Adicionar</button>
               </div>
             </div>
           </div>
@@ -104,7 +109,7 @@ export default function PartnerStagesTab({
                 return (
                 <div key={stg.id} style={{borderBottom:'1px solid var(--b)'}}>
                   <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',transition:'background 0.15s',cursor:'pointer'}} onClick={() => toggleAccordion(stg.id)}>
-                    <div style={{width:24,height:24,borderRadius:6,border: stg.status === 'completed' ? '2px solid var(--green)' : '2px solid var(--b)',background: stg.status === 'completed' ? 'var(--green)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.75rem',color:'#fff',flexShrink:0,transition:'all 0.2s', cursor:'pointer'}} onClick={(e) => { e.stopPropagation(); toggleStage(stg.id, stg.status); }}>{stg.status === 'completed' && '✓'}</div>
+                    <div style={{width:24,height:24,borderRadius:6,border: stg.status === 'completed' ? '2px solid var(--green)' : '2px solid var(--b)',background: stg.status === 'completed' ? 'var(--green)' : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.75rem',color:'#fff',flexShrink:0,transition:'all 0.2s', cursor:'pointer'}} onClick={(e) => { e.stopPropagation(); if (canDone) toggleStage(stg.id, stg.status); else showToast?.('Acesso Negado', 'Sem permissão para alterar status.', 'error'); }}>{stg.status === 'completed' && '✓'}</div>
                     <div className="u-flex-1" style={{display:'flex', alignItems:'center', gap: 8}}>
                       <div style={{flex:1}}>
                         <div style={{fontWeight:600,fontSize:'0.88rem',textDecoration: stg.status === 'completed' ? 'line-through' : 'none',color: stg.status === 'completed' ? 'var(--t3)' : 'var(--text)',transition:'all 0.2s'}}>{idx + 1}. {stg.name}</div>
@@ -112,7 +117,7 @@ export default function PartnerStagesTab({
                       </div>
                       <span style={{fontSize:'1.1rem', opacity:0.6, display:'inline-block', width: '16px', textAlign: 'center'}}>{expandedSections.has(stg.id) ? '−' : '+'}</span>
                     </div>
-                    <button className="btn ghost" style={{fontSize:'0.7rem',padding:'4px 10px',color:'var(--red)'}} onClick={(e) => { e.stopPropagation(); deleteStage(stg.id); }}>🗑</button>
+                    <button className="btn ghost" style={{fontSize:'0.7rem',padding:'4px 10px',color:'var(--red)'}} onClick={(e) => { e.stopPropagation(); if (canDelete) deleteStage(stg.id); else showToast?.('Acesso Negado', 'Sem permissão para excluir.', 'error'); }}>🗑</button>
                   </div>
                   {/* Stage-specific Photos Mini-Gallery */}
                   {expandedSections.has(stg.id) && (
@@ -121,14 +126,14 @@ export default function PartnerStagesTab({
                         <div style={{display:'flex',gap:12,overflowX:'auto',padding:'6px 4px 6px 4px'}}>
                           {stagePhotos.map(photo => (
                             <div key={photo.id} style={{width:60,height:60,borderRadius:6,backgroundImage:`url(${photo.file_url})`,backgroundSize:'cover',backgroundPosition:'center',flexShrink:0,position:'relative'}}>
-                               <button style={{position:'absolute',top:-6,right:-6,background:'var(--bg2)',border:'1px solid var(--red)',color:'var(--red)',width:20,height:20,borderRadius:'50%',fontSize:'0.65rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={(e) => { e.stopPropagation(); deleteFile?.(photo); }}>✕</button>
+                               <button style={{position:'absolute',top:-6,right:-6,background:'var(--bg2)',border:'1px solid var(--red)',color:'var(--red)',width:20,height:20,borderRadius:'50%',fontSize:'0.65rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={(e) => { e.stopPropagation(); if (canUpload) deleteFile?.(photo); else showToast?.('Acesso Negado', 'Sem permissão para remover foto.', 'error'); }}>✕</button>
                             </div>
                           ))}
                         </div>
                       )}
                       <div>
                         <input type="file" multiple accept="image/*" id={`file_stage_${stg.id}`} className="u-hide" onChange={e => { if(e.target.files) handleFileUpload?.(e.target.files, stg.id); }} />
-                        <button className="btn ghost" style={{fontSize:'0.7rem',padding:'4px 12px',opacity: isUploading ? 0.5 : 1}} disabled={isUploading} onClick={() => document.getElementById(`file_stage_${stg.id}`)?.click()}>
+                        <button className="btn ghost" style={{fontSize:'0.7rem',padding:'4px 12px',opacity: isUploading ? 0.5 : 1}} disabled={isUploading} onClick={() => { if (canUpload) document.getElementById(`file_stage_${stg.id}`)?.click(); else showToast?.('Acesso Negado', 'Usuário sem permissão de anexo/upload.', 'error'); }}>
                            {isUploading ? '⌛ Enviando fotos...' : '📷 Anexar fotos nesta etapa'}
                         </button>
                       </div>

@@ -235,6 +235,34 @@ export interface ChatPartner {
 }
 
 // ============================================
+// RBAC Team Permissions
+// ============================================
+
+export interface EmployeePermissions {
+  dashboard?: { view: boolean };
+  team?: { view: boolean; edit: boolean };
+  leads?: { view: boolean; move: boolean; edit_notes: boolean; delete: boolean };
+  projects?: { view: boolean; create: boolean; delete: boolean };
+  stages?: { view: boolean; create: boolean; done: boolean; delete: boolean; upload: boolean };
+  calendar?: { view: boolean; edit: boolean; delete: boolean };
+  dailylog?: { view: boolean; create: boolean; delete: boolean };
+  uploads?: { view: boolean; upload: boolean; delete: boolean };
+  chat?: { view: boolean; send: boolean; delete: boolean };
+  status?: 'Pendente' | 'Ativo';
+}
+
+export interface PartnerEmployee {
+  id?: string;
+  partner_id: string; // Master's profile ID
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  permissions: EmployeePermissions;
+  created_at?: string;
+}
+
+// ============================================
 // Re-export Supabase User for convenience
 // ============================================
 

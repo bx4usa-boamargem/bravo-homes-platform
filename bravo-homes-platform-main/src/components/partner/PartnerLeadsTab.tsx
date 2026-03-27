@@ -12,12 +12,17 @@ interface PartnerLeadsTabProps {
   setLeadNotes: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   saveLeadNotes: (id: string) => void;
   deleteLead: (id: string) => void;
+  canMove?: boolean;
+  canEditNotes?: boolean;
+  canDelete?: boolean;
+  showToast?: (title: string, msg: string, type: 'error'|'success'|'info') => void;
 }
 
 export default function PartnerLeadsTab({
   leads, loadingDb, expandedLead, setExpandedLead,
   getUrgencyColor, leadStatuses, updateLeadStatus,
-  leadNotes, setLeadNotes, saveLeadNotes, deleteLead
+  leadNotes, setLeadNotes, saveLeadNotes, deleteLead, 
+  canMove = true, canEditNotes = true, canDelete = true, showToast
 }: PartnerLeadsTabProps) {
 
   const handleDragStart = (e: React.DragEvent, leadId: string) => {
@@ -30,6 +35,10 @@ export default function PartnerLeadsTab({
 
   const handleDrop = (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
+    if (!canMove) {
+      showToast?.('Acesso Negado', 'Você não tem permissão para mover fases deste lead.', 'error');
+      return;
+    }
     const leadId = e.dataTransfer.getData('leadId');
     
     // Map from Portuguese column name back to English db status
@@ -188,13 +197,14 @@ export default function PartnerLeadsTab({
                   <label style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',color:'var(--t3)',textTransform:'uppercase',letterSpacing:1,display:'block',marginBottom:6}}>Observações</label>
                   <textarea className="f-inp" style={{resize:'vertical',minHeight:90}} placeholder="Anote informações sobre este lead..." value={leadNotes[selectedLead.id] !== undefined ? leadNotes[selectedLead.id] : (selectedLead.notes || '')} onChange={e => setLeadNotes(prev => ({...prev, [selectedLead.id]: e.target.value}))}></textarea>
                   {leadNotes[selectedLead.id] !== undefined && leadNotes[selectedLead.id] !== (selectedLead.notes || '') && (
-                    <button className="btn gold" style={{marginTop:8,fontSize:'0.75rem',padding:'6px 16px'}} onClick={() => saveLeadNotes(selectedLead.id)}>💾 Salvar observações</button>
+                    <button className="btn gold" style={{marginTop:8,fontSize:'0.75rem',padding:'6px 16px'}} onClick={() => { if (canEditNotes) saveLeadNotes(selectedLead.id); else showToast?.('Acesso Negado', 'Sem permissão para editar observações.', 'error'); }}>💾 Salvar observações</button>
                   )}
               </div>
             </div>
             
             <div className="modal-foot" style={{justifyContent:'flex-end'}}>
                 <button className="btn ghost" style={{fontSize:'0.75rem',padding:'6px 14px',color:'var(--red)'}} onClick={() => {
+                  if (!canDelete) { showToast?.('Acesso Negado', 'Sem permissão para remover lead.', 'error'); return; }
                   deleteLead(selectedLead.id);
                   setExpandedLead(null);
                 }}>🗑 Remover lead</button>

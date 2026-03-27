@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Project } from '../types';
 import type { User } from '@supabase/supabase-js';
@@ -18,18 +18,15 @@ export default function ClientDashboard() {
   const unreadCount = notifications.filter(n => !n.read).length;
   
   const [project, setProject] = useState<Project | null>(null);
-  const [loadingDb, setLoadingDb] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     async function fetchProject() {
-      setLoadingDb(true);
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) setUser(currentUser);
       // Fetching the first project as a placeholder for the logged-in client's project
       const { data } = await supabase.from('projects').select('*').limit(1).single();
       if (data) setProject(data);
-      setLoadingDb(false);
     }
     fetchProject();
   }, []);
@@ -61,7 +58,7 @@ export default function ClientDashboard() {
         <div className="client-card">
           <div className="client-avatar" style={{textTransform:'uppercase'}}>{user?.user_metadata?.full_name ? user.user_metadata.full_name.substring(0, 2) : 'C'}</div>
           <div className="client-info">
-            <div className="name">{user?.user_metadata?.full_name || project?.client_name || 'Cliente'}</div>
+            <div className="name">{user?.user_metadata?.full_name || project?.name?.split(' - ')[0] || 'Cliente'}</div>
             <div className="role">Cliente</div>
           </div>
         </div>
@@ -197,7 +194,7 @@ export default function ClientDashboard() {
           {/* DASHBOARD */}
           {activeTab === 'dashboard' && (
             <div className="page active">
-              <div className="section-title">Bem-vindo, {project?.client_name || 'Johnson Family'}</div>
+              <div className="section-title">Bem-vindo, {project?.name?.split(' - ')[0] || 'Johnson Family'}</div>
               <div className="section-sub">Acompanhe o progresso da sua reforma em tempo real.</div>
 
               <div className="alert">
@@ -271,7 +268,7 @@ export default function ClientDashboard() {
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:13}}>
                       <span style={{color:'var(--t2)'}}>Valor Total</span>
-                      <span style={{fontWeight:600,fontFamily:"'DM Mono',monospace",color:'var(--gold)'}}>${project?.value || '0'}</span>
+                      <span style={{fontWeight:600,fontFamily:"'DM Mono',monospace",color:'var(--gold)'}}>${project?.contract_value || '0'}</span>
                     </div>
                     <div className="sep" style={{margin:'6px 0'}}></div>
                     <div className="progress-label">
@@ -298,7 +295,7 @@ export default function ClientDashboard() {
           {activeTab === 'progress' && (
             <div className="page active">
               <div className="section-title">Progresso da Obra</div>
-              <div className="section-sub">{project?.client_name || 'Johnson Family'} — {project?.name || project?.service_type || 'Reforma'}</div>
+              <div className="section-sub">{project?.name?.split(' - ')[0] || 'Johnson Family'} — {project?.name || project?.service_type || 'Reforma'}</div>
 
               <div className="card" style={{marginBottom: 20}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>

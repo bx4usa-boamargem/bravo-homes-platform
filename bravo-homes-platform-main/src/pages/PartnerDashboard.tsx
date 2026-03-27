@@ -10,6 +10,7 @@ import PartnerUploadsTab from '../components/partner/PartnerUploadsTab';
 import PartnerProfileTab from '../components/partner/PartnerProfileTab';
 import PartnerSidebar from '../components/partner/PartnerSidebar';
 import PartnerHeader from '../components/partner/PartnerHeader';
+import PartnerTeamTab from '../components/partner/PartnerTeamTab';
 import PartnerHomeTab from '../components/partner/PartnerHomeTab';
 import PartnerProjectsTab from '../components/partner/PartnerProjectsTab';
 import PartnerDailyLogTab from '../components/partner/PartnerDailyLogTab';
@@ -36,6 +37,9 @@ export default function PartnerDashboard() {
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [isEmployee, setIsEmployee] = useState(false);
+  const [employeePerms, setEmployeePerms] = useState<any>(null);
+  const [masterId, setMasterId] = useState<string | null>(null);
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [chatTab, setChatTab] = useState<string>('admin');
   const [clients, setClients] = useState<Client[]>([]);
@@ -77,8 +81,8 @@ export default function PartnerDashboard() {
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter((n: any) => !n.read).length;
   
-  const showToast = (title: string, msg: string, type: 'error' | 'success' = 'success') => {
-    setToastMessage({title, msg, type});
+  const showToast = (title: string, msg: string, type: 'error' | 'success' | 'info' = 'success') => {
+    setToastMessage({title, msg, type: type === 'info' ? 'success' : type});
     setTimeout(() => setToastMessage(null), 4000);
   };
 
@@ -89,14 +93,45 @@ export default function PartnerDashboard() {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) { navigate('/', { replace: true }); return; }
       setUser(currentUser);
-      // ROLE GUARD: only parceiro can access this dashboard
-      const { data: roleProfile } = await supabase.from('profiles').select('role').eq('id', currentUser.id).single();
-      if (roleProfile && roleProfile.role && roleProfile.role !== 'parceiro') {
-        if (roleProfile.role === 'admin') { navigate('/admin', { replace: true }); return; }
-        if (roleProfile.role === 'cliente') { navigate('/client', { replace: true }); return; }
-        navigate('/', { replace: true }); return;
+      
+      const { data: empData } = await supabase.from('partner_employees').select('*').eq('email', currentUser.email).maybeSingle();
+      
+      let finalUserId = currentUser.id;
+      if (empData) {
+        setIsEmployee(true);
+        
+        // Ativa o usuário como "Acessou" caso ainda esteja pendente
+        if (empData.permissions && empData.permissions.status !== 'Ativo') {
+          const newPerms = { ...empData.permissions, status: 'Ativo' };
+          await supabase.from('partner_employees').update({ permissions: newPerms }).eq('id', empData.id);
+          empData.permissions = newPerms;
+        }
+
+        setEmployeePerms(empData.permissions);
+        finalUserId = empData.partner_id;
+        setMasterId(empData.partner_id);
+
+        const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+        setProfileData({
+          ...(myProfile || {}),
+          full_name: empData.name || myProfile?.full_name || 'Usuário',
+          role: 'Usuário'
+        });
+      } else {
+        // ROLE GUARD: only parceiro can access this dashboard
+        const { data: roleProfile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+        if (roleProfile) {
+          setProfileData(roleProfile);
+          if (roleProfile.role && roleProfile.role !== 'parceiro') {
+            if (roleProfile.role === 'admin') { navigate('/admin', { replace: true }); return; }
+            if (roleProfile.role === 'cliente') { navigate('/client', { replace: true }); return; }
+            navigate('/', { replace: true }); return;
+          }
+        }
       }
+
       // Parallel fetch all data at once for faster loading
+      // For MVP without fixing RLS immediately, we might fetch explicitly by masterId. But if RLS is strict, we need DB script.
       const [pRes, lRes, sRes, eRes, mRes, adminRes, clientsRes, logRes] = await Promise.all([
         supabase.from('projects').select('*'),
         supabase.from('leads').select('*'),
@@ -621,6 +656,7 @@ export default function PartnerDashboard() {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         handleLogout={async () => { localStorage.removeItem('partnerActiveTab'); await supabase.auth.signOut(); window.location.href = '/'; }}
+        perms={employeePerms}
       />
 
       {/* MAIN */}
@@ -644,6 +680,7 @@ export default function PartnerDashboard() {
           notifications={notifications}
           setNotifications={setNotifications}
           user={user}
+          profileData={profileData}
         />
         <div className="content">
           {/* DASHBOARD */}
@@ -661,16 +698,19 @@ export default function PartnerDashboard() {
           )}
 
           {/* PROJECTS */}
-          {activeTab === 'projects' && (
+          {activeTab === 'projects' && (!employeePerms || employeePerms.projects?.view !== false) && (
             <PartnerProjectsTab
               handleCreateProject={handleCreateProject}
               setSelectedProject={setSelectedProject}
               setActiveTab={setActiveTab}
               leads={leads}
+              canCreate={!employeePerms || employeePerms.projects?.create !== false}
+              canDelete={!employeePerms || employeePerms.projects?.delete !== false}
+              showToast={showToast}
             />
           )}
 
-          {activeTab === 'stages' && (
+          {activeTab === 'stages' && (!employeePerms || employeePerms.stages?.view !== false) && (
             <PartnerStagesTab
               projects={projects}
               selectedProject={selectedProject}
@@ -682,6 +722,10 @@ export default function PartnerDashboard() {
               toggleStage={toggleStage}
               deleteStage={deleteStage}
               showToast={showToast}
+              canCreate={!employeePerms || employeePerms.stages?.create !== false}
+              canDone={!employeePerms || employeePerms.stages?.done !== false}
+              canDelete={!employeePerms || employeePerms.stages?.delete !== false}
+              canUpload={!employeePerms || employeePerms.stages?.upload !== false}
               setUploadProjectId={setUploadProjectId}
               setActiveTab={setActiveTab}
               projectFiles={projectFiles}
@@ -692,12 +736,12 @@ export default function PartnerDashboard() {
           )}
 
           {/* CALENDAR */}
-          {activeTab === 'calendar' && (
-            <PartnerCalendarTab projects={projects} showToast={showToast} user={user} />
+          {activeTab === 'calendar' && (!employeePerms || employeePerms.calendar?.view !== false) && (
+            <PartnerCalendarTab projects={projects} showToast={showToast} user={user} canEdit={!employeePerms || employeePerms.calendar?.edit !== false} canDelete={!employeePerms || employeePerms.calendar?.delete !== false} />
           )}
 
           {/* DAILY LOG */}
-          {activeTab === 'dailylog' && (
+          {activeTab === 'dailylog' && (!employeePerms || employeePerms.dailylog?.view !== false) && (
             <PartnerDailyLogTab
               projects={projects}
               logs={logs}
@@ -711,11 +755,14 @@ export default function PartnerDashboard() {
               handleFileUpload={handleFileUpload}
               deleteFile={deleteFile}
               isUploading={isUploading}
+              showToast={showToast}
+              canCreate={!employeePerms || employeePerms.dailylog?.create !== false}
+              canDelete={!employeePerms || employeePerms.dailylog?.delete !== false}
             />
           )}
 
-          {/* LEADS */}
-          {activeTab === 'leads' && (
+          {/* LEADS (fallback) */}
+          {activeTab === 'leads' && (!employeePerms || employeePerms.leads?.view !== false) && (
             <PartnerLeadsTab
               leads={leads}
               loadingDb={loadingDb}
@@ -728,11 +775,15 @@ export default function PartnerDashboard() {
               setLeadNotes={setLeadNotes}
               saveLeadNotes={saveLeadNotes}
               deleteLead={deleteLead}
+              canMove={!employeePerms || employeePerms.leads?.move !== false}
+              canEditNotes={!employeePerms || employeePerms.leads?.edit_notes !== false}
+              canDelete={!employeePerms || employeePerms.leads?.delete !== false}
+              showToast={showToast}
             />
           )}
 
           {/* CHAT */}
-          {activeTab === 'chat' && (
+          {activeTab === 'chat' && (!employeePerms || employeePerms.chat?.view !== false) && (
             <PartnerChatTab
               user={user}
               chatTab={chatTab}
@@ -752,6 +803,9 @@ export default function PartnerDashboard() {
               chatMsg={chatMsg}
               setChatMsg={setChatMsg}
               sendMessage={sendMessage}
+              canSend={!employeePerms || employeePerms.chat?.send !== false}
+              canDelete={!employeePerms || employeePerms.chat?.delete !== false}
+              showToast={showToast}
             />
           )}
 
@@ -805,7 +859,6 @@ export default function PartnerDashboard() {
               deleteFile={deleteFile}
               getFileIcon={getFileIcon}
               t={t}
-              lang={lang}
             />
           )}
 
@@ -831,6 +884,11 @@ export default function PartnerDashboard() {
               lang={lang}
               setLang={setLang}
             />
+          )}
+
+          {/* TEAM */}
+          {activeTab === 'team' && (
+            <PartnerTeamTab user={user} showToast={showToast} />
           )}
 
         </div>

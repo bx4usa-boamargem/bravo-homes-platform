@@ -19,12 +19,15 @@ interface PartnerChatTabProps {
   chatMsg: string;
   setChatMsg: (msg: string) => void;
   sendMessage: (msg: string) => void;
+  canSend?: boolean;
+  canDelete?: boolean;
+  showToast?: (title: string, msg: string, type: 'error'|'success'|'info') => void;
 }
 
 export default function PartnerChatTab({
   user, chatTab, setChatTab, messages, chatClients, selectedChatClient, setSelectedChatClient,
   setDeleteConfirmClient, channelMessages, chatEndRef, chatFileRef, sendChatFile,
-  isRecording, stopRecording, startRecording, chatMsg, setChatMsg, sendMessage
+  isRecording, stopRecording, startRecording, chatMsg, setChatMsg, sendMessage, canSend = true, canDelete = true, showToast
 }: PartnerChatTabProps) {
   return (
     <div className="page active">
@@ -54,7 +57,7 @@ export default function PartnerChatTab({
                     <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',color:'var(--t3)'}}>{c.email || c.phone || ''}</div>
                   </div>
                   {unread > 0 && <span className="badge gold" style={{fontSize:'0.55rem'}}>{unread}</span>}
-                  <button title="Apagar conversa" onClick={(e) => { e.stopPropagation(); setDeleteConfirmClient(c); }} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:'0.85rem',padding:'4px',color:'var(--t3)',opacity:0.6,transition:'opacity .15s'}} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}>🗑️</button>
+                  <button title="Apagar conversa" onClick={(e) => { e.stopPropagation(); if (canDelete) setDeleteConfirmClient(c); else showToast?.('Acesso Negado', 'Sem permissão para apagar conversas.', 'error'); }} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:'0.85rem',padding:'4px',color:'var(--t3)',opacity:0.6,transition:'opacity .15s'}} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}>🗑️</button>
                 </div>
               );
             })}
@@ -94,10 +97,10 @@ export default function PartnerChatTab({
 
           <div style={{padding:'12px 16px',borderTop:'1px solid var(--b)',display:'flex',gap:8,alignItems:'center'}}>
             <input ref={chatFileRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" className="u-hide" onChange={e => sendChatFile(e.target.files)} />
-            <button className="btn ghost" style={{padding:'8px 10px',fontSize:'1rem',flexShrink:0}} onClick={() => chatFileRef.current?.click()} title="Attach file">📎</button>
-            <button className={`btn ${isRecording ? 'gold' : 'ghost'}`} style={{padding:'8px 10px',fontSize:'1rem',flexShrink:0,animation:isRecording ? 'pulse 1s infinite' : 'none'}} onClick={isRecording ? stopRecording : startRecording} title={isRecording ? 'Stop recording' : 'Record audio'}>🎤</button>
-            <input className="chat-input u-flex-1" placeholder={isRecording ? '🔴 Recording... click mic to stop' : 'Type your message...'} value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatMsg); }}} disabled={isRecording} />
-            <button className="btn gold" onClick={() => sendMessage(chatMsg)} disabled={isRecording || !chatMsg.trim()}>Send</button>
+            <button className="btn ghost" style={{padding:'8px 10px',fontSize:'1rem',flexShrink:0}} onClick={() => { if (canSend) chatFileRef.current?.click(); else showToast?.('Acesso Negado', 'Permissão negada para enviar mensagens/arquivos.', 'error'); }} title="Attach file">📎</button>
+            <button className={`btn ${isRecording ? 'gold' : 'ghost'}`} style={{padding:'8px 10px',fontSize:'1rem',flexShrink:0,animation:isRecording ? 'pulse 1s infinite' : 'none'}} onClick={() => { if (canSend) { if (isRecording) stopRecording(); else startRecording(); } else showToast?.('Acesso Negado', 'Permissão negada para enviar mensagens/áudio.', 'error'); }} title={isRecording ? 'Stop recording' : 'Record audio'}>🎤</button>
+            <input className="chat-input u-flex-1" placeholder={isRecording ? '🔴 Recording... click mic to stop' : 'Type your message...'} value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (canSend) sendMessage(chatMsg); else showToast?.('Acesso Negado', 'Permissão negada.', 'error'); }}} disabled={isRecording} />
+            <button className="btn gold" onClick={() => { if (canSend) sendMessage(chatMsg); else showToast?.('Acesso Negado', 'Permissão negada para postar mensagens.', 'error'); }} disabled={isRecording || !chatMsg.trim()}>Send</button>
           </div>
         </div>
       </div>

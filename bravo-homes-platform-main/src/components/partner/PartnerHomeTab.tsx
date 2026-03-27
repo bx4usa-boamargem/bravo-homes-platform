@@ -52,21 +52,34 @@ export default function PartnerHomeTab({
   return (
     <div className="page active">
       <div className="kpi-grid">
-        <div className="kpi gold"><div className="kl">Projetos Ativos</div><div className="kv">{projects.length}</div><div className="kc">Em andamento</div></div>
-        <div className="kpi green"><div className="kl">Etapas Criadas</div><div className="kv">{stages.filter(s => new Date(s.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}</div><div className="kc">Esta semana</div></div>
-        <div className="kpi blue"><div className="kl">Mensagens</div><div className="kv">{unansweredCount}</div><div className="kc">Sem Resposta</div></div>
-        <div className="kpi orange"><div className="kl">Leads Atribuídos</div><div className="kv">{leads.length}</div><div className="kc">Para você</div></div>
+        <div className="kpi gold" style={{cursor: 'pointer'}} onClick={() => setActiveTab('projects')}><div className="kl">Projetos Ativos</div><div className="kv">{projects.length}</div><div className="kc">Em andamento</div></div>
+        <div className="kpi green" style={{cursor: 'pointer'}} onClick={() => setActiveTab('projects')}><div className="kl">Etapas Criadas</div><div className="kv">{stages.filter(s => new Date(s.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}</div><div className="kc">Esta semana</div></div>
+        <div className="kpi blue" style={{cursor: 'pointer'}} onClick={() => setActiveTab('chat')}><div className="kl">Mensagens</div><div className="kv">{unansweredCount}</div><div className="kc">Sem Resposta</div></div>
+        <div className="kpi orange" style={{cursor: 'pointer'}} onClick={() => setActiveTab('leads')}><div className="kl">Leads Atribuídos</div><div className="kv">{leads.length}</div><div className="kc">Para você</div></div>
       </div>
       <div className="g2">
         <div className="card">
           <div className="ch"><span className="ct">Próximas Atividades</span><span className="ca" onClick={() => setActiveTab('calendar')} style={{cursor: 'pointer', textDecoration: 'underline'}}>Ver calendário →</span></div>
           <div className="cb">
-            {events.length === 0 && <div style={{padding: '20px', textAlign: 'center', color: 'var(--t2)', fontSize: '0.85rem'}}>Nenhuma atividade agendada.</div>}
-            {events.slice(0, 4).map(ev => {
+            {events.filter(ev => {
+              const dateStr = ev.event_date && ev.start_time ? `${ev.event_date}T${ev.start_time.length === 5 ? ev.start_time + ':00' : ev.start_time}` : (ev.event_date ? `${ev.event_date}T23:59:59` : new Date().toISOString());
+              return new Date(dateStr) >= new Date();
+            }).length === 0 && <div style={{padding: '20px', textAlign: 'center', color: 'var(--t2)', fontSize: '0.85rem'}}>Nenhuma atividade futura agendada.</div>}
+            
+            {events.filter(ev => {
+              const dateStr = ev.event_date && ev.start_time ? `${ev.event_date}T${ev.start_time.length === 5 ? ev.start_time + ':00' : ev.start_time}` : (ev.event_date ? `${ev.event_date}T23:59:59` : new Date().toISOString());
+              return new Date(dateStr) >= new Date();
+            }).sort((a, b) => {
+              const dA = new Date(a.event_date && a.start_time ? `${a.event_date}T${a.start_time.length===5?a.start_time+':00':a.start_time}` : (a.event_date ? `${a.event_date}T00:00:00` : 0)).getTime();
+              const dB = new Date(b.event_date && b.start_time ? `${b.event_date}T${b.start_time.length===5?b.start_time+':00':b.start_time}` : (b.event_date ? `${b.event_date}T00:00:00` : 0)).getTime();
+              return dA - dB;
+            }).slice(0, 4).map(ev => {
                const pOpts = { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit' } as any;
+               const evDateStr = ev.event_date && ev.start_time ? `${ev.event_date}T${ev.start_time.length === 5 ? ev.start_time + ':00' : ev.start_time}` : (ev.event_date ? `${ev.event_date}T12:00:00` : ev.start_time);
+               
                return (
                  <div key={ev.id} className="log-item" style={{display:'flex', gap: '10px', padding: '10px', borderBottom: '1px solid var(--b)'}}>
-                   <div className="log-date" style={{width: '120px', fontSize: '0.8rem', color: 'var(--t3)'}}>{new Date(ev.event_date || ev.start_time).toLocaleString('pt-br', pOpts)}</div>
+                   <div className="log-date" style={{width: '120px', fontSize: '0.8rem', color: 'var(--t3)'}}>{new Date(evDateStr || new Date()).toLocaleString('pt-br', pOpts)}</div>
                    <div className="log-text" style={{fontSize: '0.9rem'}}><strong>Agenda</strong> — {ev.title}</div>
                  </div>
                );

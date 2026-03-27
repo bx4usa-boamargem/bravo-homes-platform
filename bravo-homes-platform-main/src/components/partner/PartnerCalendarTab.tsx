@@ -11,9 +11,11 @@ interface PartnerCalendarTabProps {
   projects: any[];
   showToast: (title: string, msg: string, type?: 'success'|'error') => void;
   user?: any;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
-export default function PartnerCalendarTab({ projects, showToast, user }: PartnerCalendarTabProps) {
+export default function PartnerCalendarTab({ projects, showToast, user, canEdit = true, canDelete = true }: PartnerCalendarTabProps) {
   const { data: events = [], isLoading } = usePartnerEvents();
   const queryClient = useQueryClient();
 
@@ -78,7 +80,7 @@ export default function PartnerCalendarTab({ projects, showToast, user }: Partne
     <div className="page active" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="u-section-header">
         <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:'1.05rem'}}>Calendário de Obras</div>
-        <button className="btn gold" onClick={() => setIsNewEventOpen(true)}>+ Atividade</button>
+        <button className="btn gold" onClick={() => { if (canEdit) setIsNewEventOpen(true); else showToast?.('Acesso Negado', 'Permissão negada.', 'error'); }}>+ Atividade</button>
       </div>
 
       {/* New event form */}
@@ -159,12 +161,21 @@ export default function PartnerCalendarTab({ projects, showToast, user }: Partne
           editable={true}
           droppable={true}
           eventDrop={(info: any) => {
+            if (!canEdit) {
+              info.revert();
+              showToast('Acesso Negado', 'Permissão negada.', 'error');
+              return;
+            }
             const newDate = info.event.start;
             const dateStr = newDate.toISOString().split('T')[0];
             const timeStr = newDate.toTimeString().substring(0, 5);
             updateEventMut.mutate({ id: info.event.id, updates: { event_date: dateStr, start_time: timeStr } });
           }}
           eventClick={(info: any) => {
+            if (!canEdit && !canDelete) {
+              showToast('Acesso Negado', 'Permissão negada para editar ou excluir atividades.', 'error');
+              return;
+            }
             const ev = info.event;
             const startDate = ev.start;
             setEditingEvent({
@@ -175,6 +186,10 @@ export default function PartnerCalendarTab({ projects, showToast, user }: Partne
             });
           }}
           dateClick={(info: any) => {
+            if (!canEdit) {
+              showToast('Acesso Negado', 'Permissão negada.', 'error');
+              return;
+            }
             const clickedDate = info.dateStr?.substring(0, 10) || '';
             const clickedTime = info.dateStr?.substring(11, 16) || new Date().toTimeString().substring(0, 5);
             setNewEvent({ title: '', event_date: clickedDate, start_time: clickedTime, project_id: '' });
@@ -211,10 +226,10 @@ export default function PartnerCalendarTab({ projects, showToast, user }: Partne
               </div>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',padding:'16px 20px',borderTop:'1px solid var(--b)'}}>
-              <button className="btn" style={{background:'transparent',border:'1px solid rgba(231,76,60,0.5)',color:'var(--red)'}} onClick={() => deleteEventMut.mutate(editingEvent.id)}>🗑️ Excluir</button>
+              <button className="btn" style={{background:'transparent',border:'1px solid rgba(231,76,60,0.5)',color:'var(--red)'}} onClick={() => { if (canDelete) deleteEventMut.mutate(editingEvent.id); else showToast?.('Acesso Negado', 'Sem permissão para apagar.', 'error'); }}>🗑️ Excluir</button>
               <div style={{display:'flex',gap:'8px'}}>
                 <button className="btn ghost" onClick={() => setEditingEvent(null)}>Cancelar</button>
-                <button className="btn gold" onClick={() => updateEventMut.mutate({ id: editingEvent.id, updates: { title: editingEvent.title, event_date: editingEvent.date, start_time: editingEvent.time }})}>Salvar Alterações</button>
+                <button className="btn gold" onClick={() => { if (canEdit) updateEventMut.mutate({ id: editingEvent.id, updates: { title: editingEvent.title, event_date: editingEvent.date, start_time: editingEvent.time }}); else showToast?.('Acesso Negado', 'Permissão negada para salvar alterações.', 'error'); }}>Salvar Alterações</button>
               </div>
             </div>
           </div>

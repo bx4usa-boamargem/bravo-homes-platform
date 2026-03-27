@@ -14,6 +14,7 @@ interface PartnerHeaderProps {
   notifications: any[];
   setNotifications: React.Dispatch<React.SetStateAction<any[]>>;
   user: any;
+  profileData?: any;
 }
 
 export default function PartnerHeader({

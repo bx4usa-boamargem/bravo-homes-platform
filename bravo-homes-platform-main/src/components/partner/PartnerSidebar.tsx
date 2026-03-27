@@ -1,4 +1,3 @@
-import React from 'react';
 
 interface PartnerSidebarProps {
   theme: string;
@@ -12,10 +11,11 @@ interface PartnerSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (val: boolean) => void;
   handleLogout: () => void;
+  perms?: any;
 }
 
 export default function PartnerSidebar({
-  theme, profileData, user, activeTab, navTo, projectsCount, leadsCount, t, sidebarOpen, setSidebarOpen, handleLogout
+  theme, profileData, user, activeTab, navTo, projectsCount, leadsCount, t, sidebarOpen, setSidebarOpen, handleLogout, perms
 }: PartnerSidebarProps) {
   const navItemClass = (tab: string) => `ni ${activeTab === tab ? 'active' : ''}`;
 
@@ -35,8 +35,8 @@ export default function PartnerSidebar({
             )}
           </div>
           <div>
-            <div className="pname">{user?.user_metadata?.full_name || 'Parceiro(a)'}</div>
-            <div className="prole">Parceiro</div>
+            <div className="pname">{profileData?.full_name || user?.user_metadata?.full_name || 'Usuário(a)'}</div>
+            <div className="prole" style={{textTransform: 'capitalize'}}>{profileData?.role || 'Usuário'}</div>
           </div>
         </div>
         <div className="sb-nav">
@@ -44,33 +44,52 @@ export default function PartnerSidebar({
           <div className={navItemClass('dashboard')} onClick={() => navTo('dashboard')}>
             <span className="ni-icon">◈</span>{t('dashboard')}
           </div>
-          <div className={navItemClass('leads')} onClick={() => navTo('leads')}>
-            <span className="ni-icon">◎</span>{t('assignedLeads')}{leadsCount > 0 && <span className="badge">{leadsCount}</span>}
-          </div>
+          {(!perms || perms.leads?.view !== false) && (
+            <div className={navItemClass('leads')} onClick={() => navTo('leads')}>
+              <span className="ni-icon">◎</span>{t('assignedLeads')}{leadsCount > 0 && <span className="badge">{leadsCount}</span>}
+            </div>
+          )}
 
-          <div className="sb-sec">{t('myProjects')}</div>
-          <div className={navItemClass('projects')} onClick={() => navTo('projects')}>
-            <span className="ni-icon">▦</span>{t('activeProjects')}{projectsCount > 0 && <span className="badge gold">{projectsCount}</span>}
-          </div>
-          <div className={navItemClass('stages')} onClick={() => navTo('stages')}>
-            <span className="ni-icon">☑</span>{t('stagesOfWork')}
-          </div>
-          <div className={navItemClass('calendar')} onClick={() => navTo('calendar')}>
-            <span className="ni-icon">◷</span>{t('calendar')}
-          </div>
+          {(!perms || perms.projects?.view !== false) && (
+            <>
+              <div className="sb-sec">{t('myProjects')}</div>
+              <div className={navItemClass('projects')} onClick={() => navTo('projects')}>
+                <span className="ni-icon">▦</span>{t('activeProjects')}{projectsCount > 0 && <span className="badge gold">{projectsCount}</span>}
+              </div>
+              <div className={navItemClass('stages')} onClick={() => navTo('stages')}>
+                <span className="ni-icon">☑</span>{t('stagesOfWork')}
+              </div>
+            </>
+          )}
+          {(!perms || perms.calendar?.view !== false) && (
+            <div className={navItemClass('calendar')} onClick={() => navTo('calendar')}>
+              <span className="ni-icon">◷</span>{t('calendar')}
+            </div>
+          )}
           <div className={navItemClass('dailylog')} onClick={() => navTo('dailylog')}>
             <span className="ni-icon">📋</span>{t('dailyLog')}
           </div>
 
           <div className="sb-sec">{t('messaging')}</div>
-          <div className={navItemClass('chat')} onClick={() => navTo('chat')}>
-            <span className="ni-icon">💬</span>{t('chat')}
-          </div>
+          {(!perms || perms.chat?.view !== false) && (
+            <div className={navItemClass('chat')} onClick={() => navTo('chat')}>
+               <span className="ni-icon">💬</span>{t('chat')}
+            </div>
+          )}
 
           <div className="sb-sec">{t('files')}</div>
           <div className={navItemClass('uploads')} onClick={() => navTo('uploads')}>
             <span className="ni-icon">📷</span>{t('photosDocs')}
           </div>
+
+          {(!perms || perms.team?.view !== false) && (
+            <>
+              <div className="sb-sec">Gestão</div>
+              <div className={navItemClass('team')} onClick={() => navTo('team')}>
+                <span className="ni-icon">👥</span>Minha Equipe
+              </div>
+            </>
+          )}
 
           <div className="sb-sec">{t('account')}</div>
           <div className={navItemClass('profile')} onClick={() => navTo('profile')}>

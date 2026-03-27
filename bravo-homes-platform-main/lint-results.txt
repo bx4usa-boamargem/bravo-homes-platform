@@ -1,0 +1,14 @@
+﻿
+> bravo-homes-platform@0.0.0 lint
+> eslint .
+
+
+C:\Users\wylla\.gemini\bravo-homes-platform-main\src\components\partner\PartnerChatTab.tsx
+  101:216  error  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+C:\Users\wylla\.gemini\bravo-homes-platform-main\src\components\partner\PartnerTeamTab.tsx
+  59:5  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+Ô£û 2 problems (1 error, 1 warning)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

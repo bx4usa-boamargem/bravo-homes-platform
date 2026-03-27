@@ -29,12 +29,28 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
       const role = profile?.role || 'cliente';
 
+      let isEmployeeOfPartner = false;
       if (!allowedRoles.includes(role)) {
-        // Redirect to the correct dashboard based on actual role
-        if (role === 'admin') navigate('/admin', { replace: true });
-        else if (role === 'parceiro') navigate('/partner', { replace: true });
-        else navigate('/client', { replace: true });
-        return;
+        if (allowedRoles.includes('parceiro')) {
+          // Check if user is an employee of a partner
+          const { data: empData } = await supabase
+            .from('partner_employees')
+            .select('id')
+            .eq('email', user.email)
+            .maybeSingle();
+            
+          if (empData) {
+            isEmployeeOfPartner = true;
+          }
+        }
+
+        if (!isEmployeeOfPartner) {
+          // Redirect to the correct dashboard based on actual role
+          if (role === 'admin') navigate('/admin', { replace: true });
+          else if (role === 'parceiro') navigate('/partner', { replace: true });
+          else navigate('/client', { replace: true });
+          return;
+        }
       }
 
       setAuthorized(true);

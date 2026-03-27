@@ -12,12 +12,15 @@ interface PartnerUploadsTabProps {
   deleteFile: (f: any) => void;
   getFileIcon: (type: string) => string;
   t: (key: string) => string;
-  lang: string;
+  canUpload?: boolean;
+  canDelete?: boolean;
+  showToast?: (title: string, msg: string, type: 'error'|'success'|'info') => void;
 }
 
 export default function PartnerUploadsTab({
   projects, projectStages = [], uploadProjectId, setUploadProjectId, projectFiles,
-  isUploading, fileInputRef, handleFileUpload, deleteFile, getFileIcon, t, lang,
+  isUploading, fileInputRef, handleFileUpload, deleteFile, getFileIcon, t,
+  canUpload = true, canDelete = true, showToast
 }: PartnerUploadsTabProps) {
   const [expandedStages, setExpandedStages] = React.useState<Set<string>>(new Set());
   const [showGeneral, setShowGeneral] = React.useState(false);
@@ -125,10 +128,10 @@ export default function PartnerUploadsTab({
               <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" className="u-hide" onChange={e => onFilesSelected(e.target.files)} />
               <div
                 className="upload-zone"
-                onClick={() => openStagePicker()}
-                onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--gold)'; }}
+                onClick={() => { if (canUpload) openStagePicker(); else showToast?.('Acesso Negado', 'Sem permissão para upload de arquivos.', 'error'); }}
+                onDragOver={e => { e.preventDefault(); if (canUpload) e.currentTarget.style.borderColor = 'var(--gold)'; }}
                 onDragLeave={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--b)'; }}
-                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--b)'; openStagePicker(); }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--b)'; if(canUpload) { openStagePicker(); } else { showToast?.('Acesso Negado', 'Sem permissão para upload de arquivos.', 'error'); } }}
                 style={{cursor: isUploading ? 'wait' : 'pointer', opacity: isUploading ? 0.6 : 1}}
               >
                 <div className="upload-icon">{isUploading ? '⏳' : '📸'}</div>
@@ -161,7 +164,7 @@ export default function PartnerUploadsTab({
                           <div key={f.id} className="photo-thumb" style={{backgroundImage: `url(${f.file_url})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative'}}>
                             <div style={{position:'absolute',top:4,right:4,display:'flex',gap:4}}>
                               <a href={f.file_url} target="_blank" rel="noreferrer" style={{background:'rgba(0,0,0,0.6)',borderRadius:4,padding:'2px 6px',fontSize:'0.65rem',color:'#fff',textDecoration:'none'}} onClick={e => e.stopPropagation()}>🔍</a>
-                              <button style={{background:'rgba(200,0,0,0.7)',border:'none',borderRadius:4,padding:'2px 6px',fontSize:'0.65rem',color:'#fff',cursor:'pointer'}} onClick={e => { e.stopPropagation(); deleteFile(f); }}>✕</button>
+                              <button style={{background:'rgba(200,0,0,0.7)',border:'none',borderRadius:4,padding:'2px 6px',fontSize:'0.65rem',color:'#fff',cursor:'pointer'}} onClick={e => { e.stopPropagation(); if (canDelete) deleteFile(f); else showToast?.('Acesso Negado', 'Permissão negada para excluir arquivos.', 'error'); }}>✕</button>
                             </div>
                           </div>
                         ))}
@@ -174,7 +177,7 @@ export default function PartnerUploadsTab({
                           <div style={{fontSize:'0.82rem',fontWeight:600}}>{f.file_name}</div>
                         </div>
                         <a href={f.file_url} target="_blank" rel="noreferrer" className="btn ghost" style={{fontSize:'0.65rem',padding:'4px 8px',textDecoration:'none'}}>{t('viewBtn')}</a>
-                        <button className="btn ghost" style={{fontSize:'0.65rem',padding:'4px 8px',color:'var(--red)'}} onClick={() => deleteFile(f)}>🗑</button>
+                        <button className="btn ghost" style={{fontSize:'0.65rem',padding:'4px 8px',color:'var(--red)'}} onClick={() => { if (canDelete) deleteFile(f); else showToast?.('Acesso Negado', 'Permissão negada para excluir.', 'error'); }}>🗑</button>
                       </div>
                     ))}
                   </div>
@@ -201,7 +204,7 @@ export default function PartnerUploadsTab({
                         <div key={f.id} className="photo-thumb" style={{backgroundImage: `url(${f.file_url})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative'}}>
                           <div style={{position:'absolute',top:4,right:4,display:'flex',gap:4}}>
                             <a href={f.file_url} target="_blank" rel="noreferrer" style={{background:'rgba(0,0,0,0.6)',borderRadius:4,padding:'2px 6px',fontSize:'0.65rem',color:'#fff',textDecoration:'none'}} onClick={e => e.stopPropagation()}>🔍</a>
-                            <button style={{background:'rgba(200,0,0,0.7)',border:'none',borderRadius:4,padding:'2px 6px',fontSize:'0.65rem',color:'#fff',cursor:'pointer'}} onClick={e => { e.stopPropagation(); deleteFile(f); }}>✕</button>
+                            <button style={{background:'rgba(200,0,0,0.7)',border:'none',borderRadius:4,padding:'2px 6px',fontSize:'0.65rem',color:'#fff',cursor:'pointer'}} onClick={e => { e.stopPropagation(); if (canDelete) deleteFile(f); else showToast?.('Acesso Negado', 'Permissão negada.', 'error'); }}>✕</button>
                           </div>
                         </div>
                       ))}
@@ -214,7 +217,7 @@ export default function PartnerUploadsTab({
                         <div style={{fontSize:'0.82rem',fontWeight:600}}>{f.file_name}</div>
                       </div>
                       <a href={f.file_url} target="_blank" rel="noreferrer" className="btn ghost" style={{fontSize:'0.65rem',padding:'4px 8px',textDecoration:'none'}}>{t('viewBtn')}</a>
-                      <button className="btn ghost" style={{fontSize:'0.65rem',padding:'4px 8px',color:'var(--red)'}} onClick={() => deleteFile(f)}>🗑</button>
+                      <button className="btn ghost" style={{fontSize:'0.65rem',padding:'4px 8px',color:'var(--red)'}} onClick={() => { if (canDelete) deleteFile(f); else showToast?.('Acesso Negado', 'Permissão negada.', 'error'); }}>🗑</button>
                     </div>
                   ))}
                 </div>

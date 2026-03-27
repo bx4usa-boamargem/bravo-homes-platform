@@ -13,11 +13,15 @@ interface PartnerDailyLogTabProps {
   handleFileUpload?: (files: FileList | null, stageId?: string | null, logId?: string | null, projectId?: string | null) => void;
   deleteFile?: (f: any) => void;
   isUploading?: boolean;
+  canCreate?: boolean;
+  canDelete?: boolean;
+  showToast?: (title: string, msg: string, type: 'error'|'success'|'info') => void;
 }
 
 export default function PartnerDailyLogTab({
   projects, logs, logForm, setLogForm, submitLog, isSavingLog, getProjectName, deleteLog,
-  logPhotos = [], handleFileUpload, deleteFile, isUploading = false
+  logPhotos = [], handleFileUpload, deleteFile, isUploading = false,
+  canCreate = true, canDelete = true, showToast
 }: PartnerDailyLogTabProps) {
   return (
     <div className="page active">
@@ -47,7 +51,7 @@ export default function PartnerDailyLogTab({
                 <label style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--t3)',letterSpacing:1,textTransform:'uppercase',display:'block',marginBottom:6}}>Materiais utilizados</label>
                 <input className="f-inp" type="text" placeholder="Ex: 40 azulejos 60x60, argamassa, rejunte..." value={logForm.materials} onChange={e => setLogForm({...logForm, materials: e.target.value})} />
               </div>
-              <button className="btn gold" onClick={submitLog} disabled={isSavingLog} style={{opacity: isSavingLog ? 0.6 : 1}}>
+              <button className="btn gold" onClick={() => { if (canCreate) submitLog(); else showToast?.('Acesso Negado', 'Permissão negada para postar atualização.', 'error'); }} disabled={isSavingLog} style={{opacity: isSavingLog ? 0.6 : 1}}>
                 {isSavingLog ? '⏳ Salvando...' : '💾 Salvar log do dia'}
               </button>
             </>
@@ -75,7 +79,7 @@ export default function PartnerDailyLogTab({
                   </div>
                   {log.project_id && <span style={{fontSize:'0.65rem',background:'var(--gd)',color:'var(--gold)',borderRadius:4,padding:'2px 8px',fontWeight:600}}>{getProjectName(log.project_id)}</span>}
                 </div>
-                <button className="btn ghost" style={{fontSize:'0.65rem',padding:'3px 8px',color:'var(--red)'}} onClick={() => deleteLog(log.id)}>🗑</button>
+                <button className="btn ghost" style={{fontSize:'0.65rem',padding:'3px 8px',color:'var(--red)'}} onClick={() => { if (canDelete) deleteLog(log.id); else showToast?.('Acesso Negado', 'Sem permissão para excluir registro.', 'error'); }}>🗑</button>
               </div>
               <div style={{fontSize:'0.85rem',color:'var(--text)',lineHeight:1.6,whiteSpace:'pre-wrap',paddingLeft:16}}>{log.log_text}</div>
               
@@ -88,14 +92,14 @@ export default function PartnerDailyLogTab({
                         <div style={{display:'flex',gap:12,overflowX:'auto',padding:'6px 4px 6px 4px'}}>
                           {currentLogPhotos.map((photo: any) => (
                             <div key={photo.id} style={{width:60,height:60,borderRadius:6,backgroundImage:`url(${photo.file_url})`,backgroundSize:'cover',backgroundPosition:'center',flexShrink:0,position:'relative'}}>
-                               <button style={{position:'absolute',top:-6,right:-6,background:'var(--bg2)',border:'1px solid var(--red)',color:'var(--red)',width:20,height:20,borderRadius:'50%',fontSize:'0.65rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={(e) => { e.stopPropagation(); deleteFile?.(photo); }}>✕</button>
+                               <button style={{position:'absolute',top:-6,right:-6,background:'var(--bg2)',border:'1px solid var(--red)',color:'var(--red)',width:20,height:20,borderRadius:'50%',fontSize:'0.65rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}} onClick={(e) => { e.stopPropagation(); if (canDelete) deleteFile?.(photo); else showToast?.('Acesso Negado', 'Acesso Negado', 'error'); }}>✕</button>
                             </div>
                           ))}
                         </div>
                       )}
                       <div style={{marginTop: currentLogPhotos.length > 0 ? 4 : 4}}>
                         <input type="file" multiple accept="image/*" id={`file_log_${log.id}`} className="u-hide" onChange={e => { if(e.target.files) handleFileUpload?.(e.target.files, null, log.id, log.project_id); }} />
-                        <button className="btn ghost" style={{fontSize:'0.7rem',padding:'4px 12px',opacity: isUploading ? 0.5 : 1}} disabled={isUploading} onClick={() => document.getElementById(`file_log_${log.id}`)?.click()}>
+                        <button className="btn ghost" style={{fontSize:'0.7rem',padding:'4px 12px',opacity: isUploading ? 0.5 : 1}} disabled={isUploading} onClick={() => { if (canCreate) document.getElementById(`file_log_${log.id}`)?.click(); else showToast?.('Acesso Negado', 'Permissão Negada.', 'error'); }}>
                            {isUploading ? '⌛ Enviando fotos...' : '📷 Anexar fotos nesta vistoria'}
                         </button>
                       </div>
