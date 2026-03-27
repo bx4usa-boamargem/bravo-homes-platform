@@ -41,8 +41,13 @@ export interface Lead {
   client_id?: string;
   urgency?: string;
   assigned_partners?: string[];
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Finance Tracking
+  partner_percentage?: number;
+  payment_status?: string;
+  payment_date?: string;
   clients?: Client;
 }
 

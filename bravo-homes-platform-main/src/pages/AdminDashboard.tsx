@@ -1360,7 +1360,7 @@ export default function AdminDashboard() {
                  <div className="kpi"><div className="kl">A Receber</div><div className="kv">${toReceive.toLocaleString(undefined, {maximumFractionDigits:0})}</div></div>
                  <div className="kpi"><div className="kl">Recebido / Pago</div><div className="kv">${paidToPartners.toLocaleString(undefined, {maximumFractionDigits:0})}</div></div>
               </div>
-              <div className="card">
+              <div className="card" style={{ marginTop: '24px' }}>
                 <div className="ch"><span className="ct">Últimos Pagamentos</span></div>
                 <div className="cb p-0 overflow-x-auto">
                    <table className="tbl">
