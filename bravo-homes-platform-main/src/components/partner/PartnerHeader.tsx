@@ -42,22 +42,15 @@ export default function PartnerHeader({
       
       {/* Notification Bell */}
       <div style={{position:'relative'}}>
-        <div onClick={async () => {
-          setNotifOpen(!notifOpen);
-          if (!notifOpen && unreadCount > 0) {
-            const dbNotifs = notifications.filter(n => !n.read && !String(n.id).startsWith('msg-'));
-            if (dbNotifs.length > 0) {
-              await supabase.from('notifications').update({ read: true }).eq('user_id', user?.id).eq('read', false);
-            }
-            setNotifications(prev => prev.map(n => ({...n, read: true})));
-          }
-        }} style={{cursor:'pointer',fontSize:'1.1rem',position:'relative',width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:'8px',border:'1px solid var(--b)',background: notifOpen ? 'var(--gold)' : 'var(--bg3)',transition:'all .2s'}}>
+        <div onClick={() => setNotifOpen(!notifOpen)} style={{cursor:'pointer',fontSize:'1.1rem',position:'relative',width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:'8px',border:'1px solid var(--b)',background: notifOpen ? 'var(--gold)' : 'var(--bg3)',transition:'all .2s'}}>
           🔔
           {unreadCount > 0 && (
-            <span style={{position:'absolute',top:'-4px',right:'-4px',background:'var(--red)',color:'#fff',fontSize:'0.55rem',fontWeight:700,borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid var(--bg)'}}>{unreadCount}</span>
+            <span style={{position:'absolute',top:'-2px',right:'-2px',background:'var(--red)',borderRadius:'50%',width:12,height:12,border:'2px solid var(--bg)'}}></span>
           )}
         </div>
         {notifOpen && (
+          <>
+            <div style={{position:'fixed',inset:0,zIndex:998}} onClick={() => setNotifOpen(false)}></div>
           <div style={{position:'absolute',top:'100%',right:0,width:'340px',maxHeight:'400px',overflowY:'auto',background:'var(--bg2)',border:'1px solid var(--b)',borderRadius:'12px',boxShadow:'0 8px 30px rgba(0,0,0,0.3)',zIndex:999,padding:'8px 0',marginTop:'8px'}}>
             <div style={{padding:'10px 16px',borderBottom:'1px solid var(--b)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <span style={{fontWeight:700,fontSize:'0.85rem'}}>🔔 Notificações</span>
@@ -86,6 +79,7 @@ export default function PartnerHeader({
               ))
             )}
           </div>
+          </>
         )}
       </div>
 
