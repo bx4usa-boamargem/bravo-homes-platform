@@ -21,6 +21,20 @@ export default function PartnerHeader({
   theme, toggleTheme, activeTab, sidebarOpen, setSidebarOpen, t,
   unreadCount, notifOpen, setNotifOpen, notifications, setNotifications, user
 }: PartnerHeaderProps) {
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   return (
     <div className="topbar">
@@ -37,7 +51,9 @@ export default function PartnerHeader({
         {activeTab === 'profile' && t('myProfile')}
       </div>
 
-      <div className="topbar-pill">🟢 Online</div>
+      <div className="topbar-pill" style={!isOnline ? {color: 'var(--red)', background: 'rgba(231,76,60,0.1)', borderColor: 'rgba(231,76,60,0.2)'} : {}}>
+        {isOnline ? '🟢 Online' : '🔴 Offline'}
+      </div>
       <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--t3)'}}>{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</span>
       
       {/* Notification Bell */}
